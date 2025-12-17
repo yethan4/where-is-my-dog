@@ -1,9 +1,10 @@
 # Django Core
-Django>=5.0,<5.1
+Django>=5.0,<6.0
 django-environ>=0.11
 
-# Django REST Framework
+# Django REST Framework + Auth
 djangorestframework>=3.14
+djangorestframework-simplejwt>=5.3.0
 drf-spectacular>=0.27
 
 # Database + PostGIS
@@ -16,3 +17,7 @@ pillow>=10.1
 
 # Code Quality & Linting
 flake8>=7.0
+
+# Celery + Redis (Async tasks)
+celery[redis]>=5.3
+redis>=5.0
