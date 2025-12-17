@@ -23,7 +23,7 @@ SECRET_KEY = env('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env('DEBUG')
 
-ALLOWED_HOSTS = [env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1'])]
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1'])
 
 
 # Application definition
@@ -42,6 +42,9 @@ INSTALLED_APPS = [
     'corsheaders',
     'drf_spectacular',
     'cloudinary',
+
+    'users',
+    'listings',
 ]
 
 MIDDLEWARE = [
@@ -176,3 +179,5 @@ SPECTACULAR_SETTINGS = {
 }
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+AUTH_USER_MODEL = 'users.User'
