@@ -176,7 +176,36 @@ SPECTACULAR_SETTINGS = {
     'TITLE': 'Where Is My Dog API',
     'DESCRIPTION': 'API for lost and found dogs platform',
     'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+
+    # Security scheme for JWT authentication
+    'COMPONENT_SPLIT_REQUEST': True,
+    'SECURITY': [{'bearerAuth': []}],
+    'COMPONENTS': {
+        'securitySchemes': {
+            'bearerAuth': {
+                'type': 'http',
+                'scheme': 'bearer',
+                'bearerFormat': 'JWT',
+                'description': 'Enter your JWT access token in the format: Bearer <token>'
+            }
+        }
+    },
+
+    # UI customization
+    'SWAGGER_UI_SETTINGS': {
+        'deepLinking': True,
+        'persistAuthorization': True,
+        'displayOperationId': True,
+    },
+
+    # Enum handling
+    'ENUM_NAME_OVERRIDES': {
+        'ListingTypeEnum': 'listings.models.Listing.TYPE_CHOICES',
+        'ListingStatusEnum': 'listings.models.Listing.STATUS_CHOICES',
+    },
 }
+
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
