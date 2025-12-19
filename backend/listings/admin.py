@@ -5,7 +5,7 @@ from .models import Listing, Photo, Location
 @admin.register(Listing)
 class ListingAdmin(admin.ModelAdmin):
     """Basic admin for Listing model"""
-    
+
     list_display = (
         'title',
         'type',
@@ -14,7 +14,7 @@ class ListingAdmin(admin.ModelAdmin):
         'breed',
         'created_at',
     )
-    
+
     list_filter = (
         'type',
         'status',
@@ -23,7 +23,7 @@ class ListingAdmin(admin.ModelAdmin):
         'has_collar',
         'created_at',
     )
-    
+
     search_fields = (
         'title',
         'description',
@@ -31,9 +31,9 @@ class ListingAdmin(admin.ModelAdmin):
         'dog_name',
         'microchip_number',
     )
-    
+
     ordering = ('-created_at',)
-    
+
     readonly_fields = ('created_at', 'updated_at')
 
 

@@ -79,7 +79,11 @@ def register(request):
             'type': 'object',
             'properties': {
                 'username': {'type': 'string', 'example': 'john'},
-                'password': {'type': 'string', 'example': 'secret123', 'format': 'password'}
+                'password': {
+                    'type': 'string',
+                    'example': 'secret123',
+                    'format': 'password'
+                }
             },
             'required': ['username', 'password']
         }
@@ -157,7 +161,8 @@ def login(request):
 @extend_schema(
     responses={
         200: UserSerializer,
-        401: OpenApiResponse(description="Authentication credentials were not provided")
+        401: OpenApiResponse(
+            description="Authentication credentials were not provided")
     },
     tags=['Authentication'],
     summary="Get current user",

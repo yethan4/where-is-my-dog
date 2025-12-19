@@ -166,8 +166,8 @@ class Listing(models.Model):
 
     search_radius_km = models.IntegerField(
         default=5,
-        validators=[MinValueValidator(1), MaxValueValidator(50)],
-        help_text="Search radius in kilometers (1-50km)"
+        validators=[MinValueValidator(1), MaxValueValidator(10)],
+        help_text="Search radius in kilometers (1-10km)"
     )
 
     created_at = models.DateTimeField(auto_now_add=True)
