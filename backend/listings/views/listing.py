@@ -1,3 +1,4 @@
+from django.utils import timezone
 from rest_framework import viewsets, filters, status
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.decorators import action
@@ -7,15 +8,23 @@ from drf_spectacular.utils import (
     extend_schema,
     OpenApiParameter,
     OpenApiResponse,
-    OpenApiExample
+    OpenApiExample,
 )
 
 from django.contrib.gis.geos import Point
 from django.contrib.gis.db.models.functions import Distance
 from django.contrib.gis.measure import D
 
-from ..models import Listing
-from ..serializers import ListingSerializer
+import cloudinary.uploader
+
+
+from ..models import Listing, Photo
+from ..serializers import (
+    ListingSerializer,
+    PhotoSerializer,
+    PhotoUploadSerializer,
+    PhotoDeleteSerializer,
+)
 
 
 @extend_schema(tags=['Listings'])
@@ -206,3 +215,203 @@ class ListingViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+    @extend_schema(
+        summary="Upload photo for listing",
+        description=(
+            "Upload a photo to this listing. The photo will be uploaded to Cloudinary " # noqa
+            "and a thumbnail will be automatically generated. Maximum 2 photos per listing." # noqa
+        ),
+        request={
+            'multipart/form-data': {
+                'type': 'object',
+                'properties': {
+                    'photo': {
+                        'type': 'string',
+                        'format': 'binary',
+                        'description': 'Photo file (JPEG, PNG, WebP, max 5MB)'
+                    },
+                    'order_index': {
+                        'type': 'integer',
+                        'default': 0,
+                        'description': 'Order of photo display (0 = primary)'
+                    }
+                },
+                'required': ['photo']
+            }
+        },
+        responses={
+            201: OpenApiResponse(
+                response=PhotoSerializer,
+                description="Photo uploaded successfully",
+                examples=[
+                    OpenApiExample(
+                        'Success',
+                        value={
+                            'id': 1,
+                            'cloudinary_url': 'https://res.cloudinary.com/.../dog.jpg', # noqa
+                            'thumbnail_url': 'https://res.cloudinary.com/.../w_300,h_300/dog.jpg', # noqa
+                            'order_index': 0,
+                            'uploaded_at': '2024-12-20T10:30:00Z'
+                        }
+                    )
+                ]
+            ),
+            400: OpenApiResponse(
+                description="Validation error",
+                examples=[
+                    OpenApiExample(
+                        'Max photos reached',
+                        value={'error': 'A listing can have a maximum of 2 photos.'} # noqa
+                    ),
+                    OpenApiExample(
+                        'File too large',
+                        value={'photo': ['File size too large. Maximum size is 5MB.']} # noqa
+                    ),
+                    OpenApiExample(
+                        'Invalid file type',
+                        value={'photo': ['Invalid file type. Allowed types: JPEG, PNG, WebP.']} # noqa
+                    )
+                ]
+            ),
+            403: OpenApiResponse(
+                description="Not the listing owner",
+                examples=[
+                    OpenApiExample(
+                        'Forbidden',
+                        value={'error': 'You can only add photo to your own listings'} # noqa
+                    )
+                ]
+            ),
+            404: OpenApiResponse(
+                description="Listing not found"
+            )
+        }
+    )
+    @action(detail=True, methods=['post'])
+    def upload_photo(self, request, pk=None):
+        """
+        Upload photo for a listing.
+        Only the listing owner can add photo for their own listing.
+        """
+        listing = self.get_object()
+
+        if listing.user != request.user:
+            return Response(
+                {'error': 'You can only add photo to your own listings'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        data = request.data.copy()
+        data['listing'] = listing.id
+
+        serializer = PhotoUploadSerializer(data=data)
+
+        serializer.is_valid(raise_exception=True)
+
+        photo = serializer.save()
+
+        return Response(
+            PhotoSerializer(photo).data,
+            status=status.HTTP_201_CREATED
+        )
+
+    @extend_schema(
+        summary="Delete photo from listing",
+        description=(
+            "Delete a specific photo from this listing. "
+            "Only the listing owner can delete photos. "
+            "The photo will also be removed from Cloudinary."
+        ),
+        responses={
+            200: OpenApiResponse(
+                response=PhotoDeleteSerializer,
+                description="Photo deleted successfully",
+                examples=[
+                    OpenApiExample(
+                        'Success',
+                        value={
+                            'id': 5,
+                            'message': 'Photo deleted successfully',
+                            'deleted_at': '2025-12-20T22:30:00Z'
+                        }
+                    )
+                ]
+            ),
+            403: OpenApiResponse(
+                description="Not the listing owner",
+                examples=[
+                    OpenApiExample(
+                        'Forbidden',
+                        value={'error': 'You can only delete photos from your own listings'} # noqa
+                    )
+                ]
+            ),
+            404: OpenApiResponse(
+                description="Photo not found in this listing",
+                examples=[
+                    OpenApiExample(
+                        'Not Found',
+                        value={'error': 'Photo not found in this listing'}
+                    )
+                ]
+            ),
+            500: OpenApiResponse(
+                description="Server error - failed to delete photo from Cloudinary", # noqa
+                examples=[
+                    OpenApiExample(
+                        'Server Error',
+                        value={'error': 'Failed to delete photo: Connection timeout'} # noqa
+                    )
+                ]
+            )
+        }
+    )
+    @action(
+        detail=True,
+        methods=['delete'],
+        url_path='photos/(?P<photo_id>[^/.]+)'
+    )
+    def delete_photo(self, request, pk=None, photo_id=None):
+        """
+        Delete a photo from listing.
+        Only the listing owner can delete photos.
+        """
+        listing = self.get_object()
+
+        if listing.user != request.user:
+            return Response(
+                {'error': 'You can only delete photos from your own listings'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        try:
+            photo = listing.photos.get(id=photo_id)
+        except Photo.DoesNotExist:
+            return Response(
+                {'error': 'Photo not found in this listing'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        photo_id_deleted = photo.id
+        cloudinary_public_id = photo.cloudinary_public_id
+
+        try:
+            if cloudinary_public_id:
+                cloudinary.uploader.destroy(cloudinary_public_id)
+
+            photo.delete()
+
+            return Response(
+                {
+                    'id': photo_id_deleted,
+                    'message': 'Photo deleted successfully',
+                    'deleted_at': timezone.now()
+                },
+                status=status.HTTP_200_OK
+            )
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to delete photo: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
