@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework_gis.fields import GeometryField
 from ..models import Location
 
 
@@ -6,18 +7,19 @@ class LocationSerializer(serializers.ModelSerializer):
     """
     Serializer for Location model.
     Handles geographic data for listings.
-
-    Note: 'point' field (PostGIS geometry) is excluded from API.
-    Instead, we expose latitude/longitude which are auto-populated
-    from the point field in the model's save() method.
     """
+
+    point = GeometryField()
 
     class Meta:
         model = Location
         fields = (
             'id',
+            'added_by_user',
+            'listing',
             'latitude',
             'longitude',
+            'point',
             'address',
             'location_type',
             'is_primary',
@@ -27,7 +29,9 @@ class LocationSerializer(serializers.ModelSerializer):
         )
         read_only_fields = (
             'id',
+            'listing',
             'created_at',
+            'added_by_user',
             'latitude',
             'longitude',
         )

@@ -24,6 +24,7 @@ from ..serializers import (
     PhotoSerializer,
     PhotoUploadSerializer,
     PhotoDeleteSerializer,
+    LocationSerializer
 )
 
 
@@ -415,3 +416,39 @@ class ListingViewSet(viewsets.ModelViewSet):
                 {'error': f'Failed to delete photo: {str(e)}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+    @extend_schema(
+        summary="Add new location to listing",
+        description=(
+            "Add a new location update to an existing listing. "
+            "Any authenticated user can add a location if they spot the dog again." # noqa
+        ),
+        request=LocationSerializer,
+        responses={
+            201: LocationSerializer,
+            400: OpenApiResponse(description="Validation error"),
+            401: OpenApiResponse(description="Authentication required"),
+            404: OpenApiResponse(description="Listing not found")
+        }
+    )
+    @action(
+        detail=True,
+        methods=['post'],
+        url_path='location'
+    )
+    def add_location(self, request, pk=None):
+        listing = self.get_object()
+
+        serializer = LocationSerializer(data=request.data)
+
+        serializer.is_valid(raise_exception=True)
+
+        location = serializer.save(
+            added_by_user=request.user,
+            listing=listing
+            )
+
+        return Response(
+            LocationSerializer(location).data,
+            status=status.HTTP_201_CREATED
+        )
