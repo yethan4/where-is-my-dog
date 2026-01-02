@@ -2,6 +2,8 @@ from rest_framework import serializers
 from ..models import Listing
 from . import PhotoSerializer, LocationSerializer
 
+from rest_framework_gis.fields import GeometryField
+
 
 class ListingSerializer(serializers.ModelSerializer):
     """
@@ -73,3 +75,43 @@ class ListingSerializer(serializers.ModelSerializer):
                 "Search radius must be between 1 and 10 km for Lublin area"
             )
         return value
+
+
+class SimilarListingSerializer(serializers.Serializer):
+    """
+    Serializer for duplicate detection request.
+    """
+    search_type = serializers.ChoiceField(
+        choices=['found', 'lost'],
+        help_text="Type of listings to search: 'found' or 'lost'"
+    )
+    point = GeometryField(
+        help_text="Geographic location (GeoJSON Point)"
+    )
+    breed = serializers.CharField(
+        max_length=100,
+        help_text="Dog breed"
+    )
+    size = serializers.ChoiceField(
+        choices=['small', 'medium', 'large'],
+        help_text="Dog size"
+    )
+    has_collar = serializers.BooleanField(
+        help_text="Whether dog has a collar"
+    )
+    collar_color = serializers.CharField(
+        max_length=50,
+        required=False,
+        allow_blank=True,
+        help_text="Collar color (only if has_collar=True)"
+    )
+
+    def validate(self, data):
+        """
+        Check that collar_color is provided if has_collar=True
+        """
+        if data['has_collar'] and not data.get('collar_color'):
+            raise serializers.ValidationError({
+                'collar_color': 'Collar color is required when has_collar=True'
+            })
+        return data

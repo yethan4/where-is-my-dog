@@ -24,8 +24,11 @@ from ..serializers import (
     PhotoSerializer,
     PhotoUploadSerializer,
     PhotoDeleteSerializer,
-    LocationSerializer
+    LocationSerializer,
+    SimilarListingSerializer
 )
+
+from ..services import DuplicateDetector
 
 
 @extend_schema(tags=['Listings'])
@@ -451,4 +454,46 @@ class ListingViewSet(viewsets.ModelViewSet):
         return Response(
             LocationSerializer(location).data,
             status=status.HTTP_201_CREATED
+        )
+
+    @extend_schema(
+        summary="Check for similar listings",
+        description=(
+            "Search for similar dog listings based on characteristics and location.\n\n" # noqa
+            "**Use cases:**\n"
+            "- search_type='found': Find duplicate 'found' reports (before creating new listing)\n" # noqa
+            "- search_type='lost': Find potential owners (after creating 'found' listing)" # noqa
+        ),
+        request=SimilarListingSerializer,
+        responses={
+            200: ListingSerializer(many=True),
+            400: OpenApiResponse(description="Validation error"),
+        }
+    )
+    @action(
+        detail=False,
+        methods=['post'],
+        url_path='check-similar'
+    )
+    def check_similar(self, request):
+        """
+        Find similar listings based on characteristics and location.
+        """
+
+        serializer = SimilarListingSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        validated_data = serializer.validated_data
+
+        search_type = validated_data.pop('search_type')
+
+        detector = DuplicateDetector(radius_km=2)
+        similar_listings = detector.find_similar_listings(
+            listing_data=validated_data,
+            listing_type=search_type
+        )
+
+        return Response(
+            ListingSerializer(similar_listings, many=True).data,
+            status=status.HTTP_200_OK
         )
