@@ -52,6 +52,19 @@ services:
         condition: service_healthy
     env_file:
       - ./backend/.env
+  
+  celery-beat:
+    build: ./backend
+    command: celery -A config beat --loglevel=info
+    volumes:
+      - ./backend:/app
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - ./backend/.env
 
 volumes:
   postgres_data:

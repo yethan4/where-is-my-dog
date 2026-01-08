@@ -38,3 +38,7 @@ Thumbs.db
 # Temporary
 *.tmp
 *.bak
+
+# Celery
+celerybeat-schedule
+celerybeat.pid

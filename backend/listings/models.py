@@ -1,7 +1,9 @@
+from datetime import timedelta
 from django.db import models
 from django.conf import settings
 from django.contrib.gis.db import models as gis_models
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.utils import timezone
 
 from cloudinary.models import CloudinaryField
 
@@ -185,6 +187,19 @@ class Listing(models.Model):
 
     def __str__(self):
         return f"{self.get_type_display()}: {self.title}"
+
+    def save(self, *args, **kwargs):
+        """Auto-set exipres_at for new 'found' listings"""
+
+        is_new = self.pk is None
+
+        if is_new and self.status == self.STATUS_ACTIVE:
+            if self.type == self.TYPE_FOUND:
+                self.expires_at = timezone.now() + timedelta(days=2)
+            elif self.type == self.TYPE_LOST:
+                self.expires_at = timezone.now() + timedelta(days=5)
+
+        super().save(*args, **kwargs)
 
     @property
     def is_active(self):
