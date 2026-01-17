@@ -54,7 +54,7 @@ class UserModelTests(TestCase):
         """Test email must be unique"""
         email = 'test@example.com'
         User.objects.create_user(
-            email=email, 
+            email=email,
             password='test123',
             username='user1'
         )

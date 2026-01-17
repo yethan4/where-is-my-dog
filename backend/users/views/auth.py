@@ -78,14 +78,18 @@ def register(request):
         'application/json': {
             'type': 'object',
             'properties': {
-                'username': {'type': 'string', 'example': 'john'},
+                'email': {
+                    'type': 'string',
+                    'example': 'john@example.com',
+                    'format': 'email'
+                },
                 'password': {
                     'type': 'string',
                     'example': 'secret123',
                     'format': 'password'
                 }
             },
-            'required': ['username', 'password']
+            'required': ['email', 'password']
         }
     },
     responses={
@@ -134,10 +138,10 @@ def register(request):
 def login(request):
     """Login user and return JWT tokens"""
 
-    username = request.data.get('username')
+    email = request.data.get('email')
     password = request.data.get('password')
 
-    user = authenticate(username=username, password=password)
+    user = authenticate(email=email, password=password)
 
     if user is None:
         return Response(
