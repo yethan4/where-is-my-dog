@@ -1,6 +1,7 @@
 from django.utils import timezone
 from rest_framework import viewsets, filters, status
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from ..permissions import IsOwnerOrReadOnly
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
@@ -43,7 +44,7 @@ class ListingViewSet(viewsets.ModelViewSet):
     """
     queryset = Listing.objects.all().order_by('-created_at')
     serializer_class = ListingSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
 
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ['type', 'status', 'breed', 'size', 'color', 'gender']
@@ -67,7 +68,7 @@ class ListingViewSet(viewsets.ModelViewSet):
                 examples=[
                     OpenApiExample(
                         'Forbidden',
-                        value={'error': 'You can only mark your own listings'}
+                        value={'detail': 'You do not have permission to perform this action.'} # noqa
                     )
                 ]
             )
@@ -80,12 +81,6 @@ class ListingViewSet(viewsets.ModelViewSet):
         Only the listing owner can mark their own listing.
         """
         listing = self.get_object()
-
-        if listing.user != request.user:
-            return Response(
-                {'error': 'You can only mark your own listings'},
-                status=status.HTTP_403_FORBIDDEN
-            )
 
         if listing.type == 'lost':
             listing.status = Listing.STATUS_FOUND
@@ -279,11 +274,11 @@ class ListingViewSet(viewsets.ModelViewSet):
                 ]
             ),
             403: OpenApiResponse(
-                description="Not the listing owner",
+                description="Not the owner of this listing",
                 examples=[
                     OpenApiExample(
                         'Forbidden',
-                        value={'error': 'You can only add photo to your own listings'} # noqa
+                        value={'detail': 'You do not have permission to perform this action.'} # noqa
                     )
                 ]
             ),
@@ -299,12 +294,6 @@ class ListingViewSet(viewsets.ModelViewSet):
         Only the listing owner can add photo for their own listing.
         """
         listing = self.get_object()
-
-        if listing.user != request.user:
-            return Response(
-                {'error': 'You can only add photo to your own listings'},
-                status=status.HTTP_403_FORBIDDEN
-            )
 
         data = request.data.copy()
         data['listing'] = listing.id
@@ -343,11 +332,11 @@ class ListingViewSet(viewsets.ModelViewSet):
                 ]
             ),
             403: OpenApiResponse(
-                description="Not the listing owner",
+                description="Not the owner of this listing",
                 examples=[
                     OpenApiExample(
                         'Forbidden',
-                        value={'error': 'You can only delete photos from your own listings'} # noqa
+                        value={'detail': 'You do not have permission to perform this action.'} # noqa
                     )
                 ]
             ),
@@ -382,12 +371,6 @@ class ListingViewSet(viewsets.ModelViewSet):
         Only the listing owner can delete photos.
         """
         listing = self.get_object()
-
-        if listing.user != request.user:
-            return Response(
-                {'error': 'You can only delete photos from your own listings'},
-                status=status.HTTP_403_FORBIDDEN
-            )
 
         try:
             photo = listing.photos.get(id=photo_id)
