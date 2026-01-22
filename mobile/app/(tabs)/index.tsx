@@ -62,7 +62,6 @@ const index = () => {
       {/* header */}
       <View className="flex flex-row items-center justify-between mb-4 mt-2">
         <Text className="text-3xl font-bold text-blue-800 ">Lublin</Text>
-        <Ionicons name="person-outline" size={22} />
       </View>
 
       {/* buttons */}

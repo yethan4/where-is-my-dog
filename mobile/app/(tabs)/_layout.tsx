@@ -1,8 +1,11 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Tabs } from "expo-router"
 import { Ionicons } from '@expo/vector-icons'
+import { useAuth } from "@/contexts/AuthContext"
 
-const _layout = () => {
+const TabsLayout = () => {
+  const { isAuthenticated } = useAuth();
+
   return (
     <Tabs>
         <Tabs.Screen
@@ -24,6 +27,7 @@ const _layout = () => {
           options={{
             title: 'Create',
             headerShown: false,
+            href: isAuthenticated ? undefined : null,
             tabBarIcon: ({ color, size, focused }) => (
               <Ionicons 
                 name={focused ? 'add-circle' : 'add-circle-outline'} 
@@ -51,4 +55,4 @@ const _layout = () => {
   )
 }
 
-export default _layout
+export default TabsLayout
