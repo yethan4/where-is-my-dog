@@ -4,11 +4,12 @@ import { useRouter } from "expo-router";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Profile = () => {
-  const { isAuthenticated, logout } = useAuth();
+  const { authState, onLogout } = useAuth();
   const router = useRouter();
+  const currentUser = authState.user
 
 
-  if (!isAuthenticated) {
+  if (!authState.isAuthenticated) {
     return (
       <View className="pt-safe px-4 flex-1 justify-center items-center">
         <Text className="text-2xl font-bold mb-8">Welcome!</Text>
@@ -33,10 +34,13 @@ const Profile = () => {
   return (
     <View className="pt-safe px-4">
       <Text className="text-2xl font-bold mb-4">Profile</Text>
+      <Text className="text-xl font-bold mt-0">
+        username:{currentUser?.username} email:{currentUser?.email}
+      </Text>
       <Text className="mb-8">You are logged in!</Text>
       
       <Pressable 
-        onPress={logout}
+        onPress={onLogout}
         className="bg-red-500 py-4 rounded-lg"
       >
         <Text className="text-white text-center font-semibold">Logout</Text>

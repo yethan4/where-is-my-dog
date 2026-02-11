@@ -10,11 +10,12 @@ const Register = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [phone, setPhone] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
   
-  const { login } = useAuth();
+  const { onRegister } = useAuth();
   const router = useRouter();
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     if (!email || !username || !password || !confirmPassword) {
       Alert.alert('Error', 'Please fill in all fields')
       return
@@ -30,12 +31,22 @@ const Register = () => {
       return
     }
 
-    login()
-    router.back()
+    const result = await onRegister({email, username, password, password2: confirmPassword, phone});
+    if (result.error) {
+        setErrorMsg(result.msg);
+    } else {
+        router.back();
+    }
   }
 
     return (
     <View className="flex-1 px-6 justify-center">
+      {errorMsg && (
+        <View className="absolute top-20 left-6 right-6 bg-red-100 rounded-lg p-4">
+          <Text className="text-red-700 font-bold text-center">{errorMsg}</Text>
+        </View>
+      )}
+
       <Pressable 
         onPress={() => router.back()}
         className="absolute top-12 left-6"

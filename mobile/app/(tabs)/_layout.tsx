@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { useAuth } from "@/contexts/AuthContext"
 
 const TabsLayout = () => {
-  const { isAuthenticated } = useAuth();
+  const { authState } = useAuth();
 
   return (
     <Tabs>
@@ -27,7 +27,7 @@ const TabsLayout = () => {
           options={{
             title: 'Create',
             headerShown: false,
-            href: isAuthenticated ? undefined : null,
+            href: authState.isAuthenticated ? undefined : null,
             tabBarIcon: ({ color, size, focused }) => (
               <Ionicons 
                 name={focused ? 'add-circle' : 'add-circle-outline'} 
