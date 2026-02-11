@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from ..models import Listing
 from . import PhotoSerializer, LocationSerializer
+from users.serializers import UserPublicSerializer
 
 from rest_framework_gis.fields import GeometryField
 
@@ -13,6 +14,7 @@ class ListingSerializer(serializers.ModelSerializer):
 
     photos = PhotoSerializer(many=True, read_only=True)
     locations = LocationSerializer(many=True, read_only=True)
+    user = UserPublicSerializer(read_only=True)
 
     primary_location = serializers.SerializerMethodField()
     photo_count = serializers.SerializerMethodField()
@@ -21,6 +23,7 @@ class ListingSerializer(serializers.ModelSerializer):
         model = Listing
         fields = (
             'id',
+            'user',
             'type',
             'status',
             'title',

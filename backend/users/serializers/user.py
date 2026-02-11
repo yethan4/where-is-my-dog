@@ -84,3 +84,25 @@ class RegistrationSerializer(serializers.ModelSerializer):
         )
 
         return user
+
+
+class UserPublicSerializer(serializers.ModelSerializer):
+    """
+    Public user representation safe for use in nested serializers.
+    Excludes sensitive fields (email, phone).
+    """
+    profile_photo = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = (
+            'id',
+            'username',
+            'profile_photo'
+        )
+        read_only_fields = fields
+
+    def get_profile_photo(self, obj):
+        if obj.profile_photo:
+            return obj.profile_photo
+        return None
