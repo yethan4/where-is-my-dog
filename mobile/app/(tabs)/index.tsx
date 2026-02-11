@@ -1,84 +1,74 @@
 import { View, Text, ScrollView, Pressable, FlatList, Image } from 'react-native'
-import React, { useState } from 'react'
-import { Ionicons } from "@expo/vector-icons";
+import React, { useEffect, useState } from 'react'
+import { MaterialCommunityIcons, FontAwesome5, Ionicons } from '@expo/vector-icons';
+import ListingCard, { ListingItem } from "@/components/ListingCard";
+import axios from "axios";
+
+interface ListingsResponse {
+  results: ListingItem[];
+}
 
 const index = () => {
+  const [listings, setListings] = useState<ListingItem[]>([]);
   const [listingType, setListingType] = useState<'found' | 'lost'>('lost');
+  const [loading, setLoading] = useState(true);
 
-  const listings = [
-    {
-      id: 1,
-      type: 'lost',
-      title: 'Small brown dog',
-      description: 'Small brown dog, very friendly and playful.',
-      dog_name: 'Pimpek',
-      age_estimate: '2 years',
-      breed: 'Beagle',
-      size: 'small',
-      color: 'brown',
-      reward_offered: '50',
-      photos: [
-        { thumbnail_url: 'https://res.cloudinary.com/dnuvgzlhk/image/upload/v1766267970/listings/photos/t2ekgtylvxx0usg1vwuo.jpg' }
-      ],
-      primary_location: 'Lublin, Poland'
-    },
-    {
-      id: 2,
-      type: 'lost',
-      title: 'Small brown dog',
-      description: 'Small brown dog, very friendly and playful.',
-      dog_name: 'Pimpek',
-      age_estimate: '2 years',
-      breed: 'Beagle',
-      size: 'small',
-      color: 'brown',
-      reward_offered: '50',
-      photos: [
-        { thumbnail_url: 'https://res.cloudinary.com/dnuvgzlhk/image/upload/v1766267970/listings/photos/t2ekgtylvxx0usg1vwuo.jpg' }
-      ],
-      primary_location: 'Lublin, Poland'
-    },
-    {
-      id: 3,
-      type: 'lost',
-      title: 'Small brown dog',
-      description: 'Small brown dog, very friendly and playful.',
-      dog_name: 'Pimpek',
-      age_estimate: '2 years',
-      breed: 'Beagle',
-      size: 'small',
-      color: 'brown',
-      reward_offered: '50',
-      photos: [
-        { thumbnail_url: 'https://res.cloudinary.com/dnuvgzlhk/image/upload/v1766267970/listings/photos/t2ekgtylvxx0usg1vwuo.jpg' }
-      ],
-      primary_location: 'Lublin, Poland'
-    },
-  ]
+  const API_URL = process.env.EXPO_PUBLIC_API_URL;
+
+  const fetchListings = async() => {
+    try {
+      setLoading(true);
+      const response = await axios.get<ListingsResponse>(`${API_URL}/api/listings/`, {
+        params: {
+          type: listingType,
+          status: 'active',
+        }
+      });
+      setListings(response.data.results);
+    } catch (error) {
+      console.error('Failed to fetch listings:', error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    fetchListings();
+  }, [listingType]);
 
 
   return (
     <View className="pt-safe px-4">
       {/* header */}
-      <View className="flex flex-row items-center justify-between mb-4 mt-2">
-        <Text className="text-3xl font-bold text-blue-800 ">Lublin</Text>
+      <View className="px-3 pt-4 pb-2 flex-row justify-between items-center">
+        <View>
+          <Text className="text-gray-500 text-sm font-medium uppercase tracking-wider">Location</Text>
+          <View className="flex-row items-center mt-1">
+            <Ionicons name="location" size={24} color="#2563EB" />
+            <Text className="text-3xl font-bold tracking-wide">Lublin</Text>
+          </View>
+        </View>
+
+        <View className="bg-white rounded-full p-2">
+          <Ionicons name="notifications-outline" size={24} className="" />
+        </View>
       </View>
 
-      {/* buttons */}
-      <View className="flex-row gap-2 mb-4 mx-auto">
-        <Pressable 
+      {/* Toggle between Lost and Found listings */}
+      <View className="mt-2 mb-4 py-1 px-1 h-14 w-full flex-row rounded-2xl justify-center bg-gray-200">
+        <Pressable
           onPress={() => setListingType('lost')}
-          className="pl-5 pr-2"
+          className={`flex-1 justify-center items-center rounded-xl ${listingType === 'lost' ? ' bg-slate-50': 'bg-transparent'}`}
         >
-          <Text className={`text-center text-2xl font-bold ${listingType === 'lost' ? 'text-gray-800' : 'text-gray-400'}`}>
+          <Text className={`font-bold text-2xl ${listingType === 'lost' ? 'text-red-600' : 'text-gray-700'}`}>
             Lost
           </Text>
         </Pressable>
-        <Pressable 
+        <Pressable
           onPress={() => setListingType('found')}
-          className="pr-5 pl-2"
+          className={`flex-1 justify-center items-center rounded-xl ${listingType === 'found' ? ' bg-slate-50': 'bg-transparent'}`}
         >
-          <Text className={`text-center text-2xl font-bold ${listingType === 'found' ? 'text-gray-800' : 'text-gray-400'}`}>
+          <Text className={`font-bold text-2xl ${listingType === 'found' ? 'text-red-600' : 'text-gray-700'}`}>
             Found
           </Text>
         </Pressable>
@@ -87,23 +77,11 @@ const index = () => {
       {/* listings */}
       <FlatList
         data={listings}
+        keyExtractor={item => item.id.toString()}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 150 }}
         renderItem={({item}) => (
-          <View className="flex-row mb-2 p-4 rounded-lg border-b">
-            {item.photos[0]?.thumbnail_url && (
-              <Image 
-                source={{ uri: item.photos[0].thumbnail_url }}
-                className="w-40 h-40 rounded-lg mr-4"
-              />
-            )}
-            <View className="flex-1">
-              <Text className="text-xl font-bold mb-1">{item.title}</Text>
-              <Text className="text-gray-700">{item.dog_name}</Text>
-              <Text className="text-gray-600 text-sm">{item.description}</Text>
-              <Text className="text-gray-500 text-sm mt-1">
-                {item.age_estimate} • {item.size} • Reward: {item.reward_offered}$
-              </Text>
-            </View>
-          </View>
+          <ListingCard item={item} />
         )}
       />
     </View>
