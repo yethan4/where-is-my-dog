@@ -26,7 +26,8 @@ from ..serializers import (
     PhotoUploadSerializer,
     PhotoDeleteSerializer,
     LocationSerializer,
-    SimilarListingSerializer
+    SimilarListingSerializer,
+    ListingListSerializer
 )
 
 from ..services import DuplicateDetector
@@ -53,6 +54,11 @@ class ListingViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         """Automatically set the listing owner to the current user"""
         serializer.save(user=self.request.user)
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return ListingListSerializer
+        return ListingSerializer
 
     @extend_schema(
         summary="Mark listing as found/returned",

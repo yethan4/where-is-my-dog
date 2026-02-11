@@ -1,9 +1,54 @@
 from rest_framework import serializers
+
 from ..models import Listing
 from . import PhotoSerializer, LocationSerializer
 from users.serializers import UserPublicSerializer
 
 from rest_framework_gis.fields import GeometryField
+
+
+class ListingListSerializer(serializers.ModelSerializer):
+    """
+    Lightweight serializer for Listing model used in list views.
+    Includes only essential fields.
+    """
+    primary_photo = serializers.SerializerMethodField()
+    primary_location = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Listing
+        fields = (
+            'id',
+            'type',
+            'status',
+            'title',
+            'reward_offered',
+            'primary_photo',
+            'dog_name',
+            'primary_location',
+            'description',
+            'breed',
+            'age_estimate',
+            'color',
+            'has_collar',
+            'collar_color',
+            'created_at',
+        )
+
+    def get_primary_location(self, obj):
+        """
+        Returns the primary (most recent) location for this listing.
+        """
+        primary = obj.locations.filter(is_primary=True).first()
+        if primary:
+            return LocationSerializer(primary).data
+        return None
+
+    def get_primary_photo(self, obj):
+        photo = obj.photos.order_by('order_index').first()
+        if photo:
+            return photo.thumbnail_url
+        return None
 
 
 class ListingSerializer(serializers.ModelSerializer):

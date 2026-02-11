@@ -4,7 +4,11 @@ from .photo import (
     PhotoUploadSerializer,
     PhotoDeleteSerializer
 )
-from .listing import ListingSerializer, SimilarListingSerializer
+from .listing import (
+    ListingSerializer,
+    SimilarListingSerializer,
+    ListingListSerializer
+)
 
 __all__ = [
     'LocationSerializer',
@@ -12,5 +16,6 @@ __all__ = [
     'ListingSerializer',
     'PhotoUploadSerializer',
     'PhotoDeleteSerializer',
-    'SimilarListingSerializer'
+    'SimilarListingSerializer',
+    'ListingListSerializer'
 ]
