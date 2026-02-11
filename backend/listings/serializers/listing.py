@@ -41,7 +41,7 @@ class ListingListSerializer(serializers.ModelSerializer):
         """
         primary = obj.locations.filter(is_primary=True).first()
         if primary:
-            return LocationSerializer(primary).data
+            return primary.address
         return None
 
     def get_primary_photo(self, obj):
