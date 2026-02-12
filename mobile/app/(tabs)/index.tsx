@@ -1,6 +1,6 @@
-import { View, Text, ScrollView, Pressable, FlatList, Image } from 'react-native'
+import { View, Text, Pressable, FlatList, Modal, TextInput, ScrollView} from 'react-native'
 import React, { useEffect, useState } from 'react'
-import { MaterialCommunityIcons, FontAwesome5, Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import ListingCard, { ListingItem } from "@/components/ListingCard";
 import axios from "axios";
 
@@ -8,12 +8,88 @@ interface ListingsResponse {
   results: ListingItem[];
 }
 
+interface Filters {
+  breed: string[];
+  color: string[];
+  gender: ('male' | 'female' | 'unknown')[];
+  size: ('small' | 'medium' | 'large')[];
+}
+
+const DEFAULT_FILTERS: Filters = {
+  breed: [],
+  color: [],
+  gender: [],
+  size: [],
+};
+
+const SIZE_OPTIONS = [
+  { value: 'small', label: 'Small', sub: 'up to 10kg' },
+  { value: 'medium', label: 'Medium', sub: '10–25kg' },
+  { value: 'large', label: 'Large', sub: '25kg+' },
+] as const;
+
+const GENDER_OPTIONS = [
+  { value: 'male', label: '♂ Male', icon: 'male' },
+  { value: 'female', label: '♀ Female', icon: 'female' },
+  { value: 'unknown', label: '? Unknown', icon: null },
+] as const;
+
+const COLOR_OPTIONS = [
+  { value: 'black', label: 'Black', dot: '#1a1a1a' },
+  { value: 'brown', label: 'Brown', dot: '#7c4a1e' },
+  { value: 'white', label: 'White', dot: '#f0f0f0', border: true },
+  { value: 'golden', label: 'Golden', dot: '#d4a520' },
+  { value: 'gray', label: 'Gray', dot: '#9ca3af' },
+  { value: 'multi', label: 'Multi', dot: null },
+] as const;
+
+const BREED_OPTIONS = [
+  'Labrador', 'Golden Retriever', 'German Shepherd',
+  'Beagle', 'Husky', 'Poodle', 'Chihuahua', 'Shiba Inu',
+  'Border Collie', 'Bulldog', 'Mixed', 'Dachshund', 'Unknown',
+];
+
 const index = () => {
   const [listings, setListings] = useState<ListingItem[]>([]);
   const [listingType, setListingType] = useState<'found' | 'lost'>('lost');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [showFilters, setShowFilters] = useState<boolean>(false);
+  const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
+  const [draftFilters, setDraftFilters] = useState<Filters>(DEFAULT_FILTERS);
+
+  const filterCount = filters.color.length + filters.gender.length + filters.size.length + filters.breed.length;
 
   const API_URL = process.env.EXPO_PUBLIC_API_URL;
+
+  const toggleFilter = <K extends keyof Filters>(
+    key: K,
+    value: Filters[K][number]
+  ) => {
+    setDraftFilters(prev => {
+      const current = prev[key] as string[];
+      const exists = current.includes(value as string);
+      return {
+        ...prev,
+        [key]: exists
+          ? current.filter(v => v !== value)
+          : [...current, value],
+      };
+    });
+  };
+
+  const resetFilters = () => {
+    setDraftFilters(DEFAULT_FILTERS);
+  };
+
+  const applyFilters = () => {
+    setFilters(draftFilters);
+    setShowFilters(false);
+  };
+
+  const openFilters = () => {
+    setDraftFilters(filters);
+    setShowFilters(true);
+  };
 
   const fetchListings = async() => {
     try {
@@ -22,6 +98,10 @@ const index = () => {
         params: {
           type: listingType,
           status: 'active',
+          ...(filters.breed.length > 0 && { breed: filters.breed.join(',') }),
+          ...(filters.size.length > 0 && { size: filters.size.join(',') }),
+          ...(filters.gender.length > 0 && { gender: filters.gender.join(',') }),
+          ...(filters.color.length > 0 && { color: filters.color.join(',') }),
         }
       });
       setListings(response.data.results);
@@ -34,13 +114,13 @@ const index = () => {
 
   useEffect(() => {
     fetchListings();
-  }, [listingType]);
+  }, [listingType, filters]);
 
 
   return (
     <View className="pt-safe px-4">
       {/* header */}
-      <View className="px-3 pt-4 pb-2 flex-row justify-between items-center">
+      <View className="pl-2 pt-4 pb-2 flex-row justify-between items-center">
         <View>
           <Text className="text-gray-500 text-sm font-medium uppercase tracking-wider">Location</Text>
           <View className="flex-row items-center mt-1">
@@ -54,23 +134,41 @@ const index = () => {
         </View>
       </View>
 
-      {/* Toggle between Lost and Found listings */}
-      <View className="mt-2 mb-4 py-1 px-1 h-14 w-full flex-row rounded-2xl justify-center bg-gray-200">
-        <Pressable
-          onPress={() => setListingType('lost')}
-          className={`flex-1 justify-center items-center rounded-xl ${listingType === 'lost' ? ' bg-slate-50': 'bg-transparent'}`}
+      <View className="flex-row mr-14 pr-1 gap-4">
+        {/* Toggle between Lost and Found listings */}
+        <View className="mt-2 mb-4 py-1 px-1 h-14 w-full flex-row rounded-2xl justify-center bg-gray-200">
+          <Pressable
+            onPress={() => setListingType('lost')}
+            className={`flex-1 justify-center items-center rounded-xl ${listingType === 'lost' ? ' bg-slate-50': 'bg-transparent'}`}
+          >
+            <Text className={`font-bold text-2xl ${listingType === 'lost' ? 'text-red-600' : 'text-gray-700'}`}>
+              Lost
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={() => setListingType('found')}
+            className={`flex-1 justify-center items-center rounded-xl ${listingType === 'found' ? ' bg-slate-50': 'bg-transparent'}`}
+          >
+            <Text className={`font-bold text-2xl ${listingType === 'found' ? 'text-red-600' : 'text-gray-700'}`}>
+              Found
+            </Text>
+          </Pressable>
+        </View>
+
+        {/* Search and filter*/}
+        <Pressable 
+          className="flex justify-center mb-2"
+          onPress={openFilters}
         >
-          <Text className={`font-bold text-2xl ${listingType === 'lost' ? 'text-red-600' : 'text-gray-700'}`}>
-            Lost
-          </Text>
-        </Pressable>
-        <Pressable
-          onPress={() => setListingType('found')}
-          className={`flex-1 justify-center items-center rounded-xl ${listingType === 'found' ? ' bg-slate-50': 'bg-transparent'}`}
-        >
-          <Text className={`font-bold text-2xl ${listingType === 'found' ? 'text-red-600' : 'text-gray-700'}`}>
-            Found
-          </Text>
+          <View className="relative bg-white px-2 py-2 rounded-2xl">
+            <Ionicons name="options-outline" size={24} />
+
+            {!!filterCount && (
+            <Text className="absolute w-6 left-6 bottom-7 text-center rounded-full bg-gray-800 border text-slate-50">
+              {filterCount}
+            </Text>
+            )}
+          </View>
         </Pressable>
       </View>
       
@@ -84,6 +182,142 @@ const index = () => {
           <ListingCard item={item} />
         )}
       />
+
+      <Modal
+        visible={showFilters}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowFilters(false)}
+      >
+        <Pressable className="flex-1 bg-black/50" onPress={() => setShowFilters(false)} />
+
+        <View className="bg-white rounded-t-3xl pb-16 px-4" >
+          <ScrollView showsVerticalScrollIndicator={false} >
+            <View className="w-10 h-1 bg-gray-200 rounded-full self-center mt-3 mb-1" />
+
+            <View className="flex-row justify-between mt-4 mb-4 items-center">
+              <Text className="text-xl font-semibold tracking-wide mt-2">Filters</Text>
+              <Pressable 
+                className="pl-4 pr-1 py-2"
+                onPress={resetFilters}
+              >
+                <Text className="text-blue-600 font-semibold">Reset all</Text>
+              </Pressable>
+            </View>
+
+            {/* Size */}
+            <Text className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2.5">Size</Text>
+            <View className="flex-row mb-5 gap-4">
+              {SIZE_OPTIONS.map(opt => {
+                const active = draftFilters.size.includes(opt.value);
+                return (
+                  <Pressable
+                      key={opt.value}
+                      onPress={() => toggleFilter('size', opt.value)}
+                      className={`flex-1 items-center py-3 rounded-2xl border-2 ${
+                        active ? 'bg-blue-600 border-blue-600' : 'bg-white border-gray-100'
+                      }`}
+                    >
+                      <Text className={`font-bold text-sm ${active ? 'text-white' : 'text-gray-800'}`}>
+                        {opt.label}
+                      </Text>
+                      <Text className={`text-xs mt-0.5 ${active ? 'text-blue-100' : 'text-gray-400'}`}>
+                        {opt.sub}
+                      </Text>
+                    </Pressable>
+                )
+              })}
+            </View>
+
+            {/* Gender */}
+            <Text className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2.5">Gender</Text>
+            <View className="flex-row mb-5" style={{ gap: 8 }}>
+              {GENDER_OPTIONS.map(opt => {
+                const active = draftFilters.gender.includes(opt.value);
+                return (
+                  <Pressable
+                    key={opt.value}
+                    onPress={() => toggleFilter('gender', opt.value)}
+                    className={`flex-1 items-center py-3 rounded-2xl border-2 ${
+                      active ? 'bg-blue-600 border-blue-600' : 'bg-white border-gray-100'
+                    }`}
+                  >
+                    <Text className={`font-semibold text-sm ${active ? 'text-white' : 'text-gray-700'}`}>
+                      {opt.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            {/* Color */}
+            <Text className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2.5">Color</Text>
+            <View className="flex-row flex-wrap mb-5" style={{ gap: 8 }}>
+              {COLOR_OPTIONS.map(opt => {
+                const active = draftFilters.color.includes(opt.value);
+                return (
+                  <Pressable
+                    key={opt.value}
+                    onPress={() => toggleFilter('color', opt.value)}
+                    className={`flex-row items-center px-3.5 py-2.5 rounded-full border-2 ${
+                      active ? 'bg-blue-600 border-blue-600' : 'bg-white border-gray-100'
+                    }`}
+                  >
+                    {opt.dot ? (
+                      <View
+                        style={{
+                          width: 12, height: 12, borderRadius: 6,
+                          backgroundColor: opt.dot,
+                          borderWidth: 'border' in opt ? 1 : 0,
+                          borderColor: '#d1d5db',
+                          marginRight: 6,
+                        }}
+                      />
+                    ) : (
+                      <View style={{ width: 12, height: 12, borderRadius: 6, marginRight: 6, overflow: 'hidden', flexDirection: 'row' }}>
+                        <View style={{ flex: 1, backgroundColor: '#7c4a1e' }} />
+                        <View style={{ flex: 1, backgroundColor: '#f0f0f0' }} />
+                        <View style={{ flex: 1, backgroundColor: '#1a1a1a' }} />
+                      </View>
+                    )}
+                    <Text className={`text-sm font-semibold ${active ? 'text-white' : 'text-gray-700'}`}>
+                      {opt.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+            
+            {/* Breed */}
+            <Text className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2.5">Breed</Text>
+            <View className="flex-row flex-wrap mb-6" style={{ gap: 8 }}>
+              {BREED_OPTIONS.map(opt => {
+                const active = draftFilters.breed.includes(opt);
+                return (
+                  <Pressable
+                    key={opt}
+                    onPress={() => toggleFilter('breed', opt)}
+                    className={`px-3.5 py-2.5 rounded-full border-2 ${
+                      active ? 'bg-blue-600 border-blue-600' : 'bg-white border-gray-100'
+                    }`}
+                  >
+                    <Text className={`text-sm font-semibold ${active ? 'text-white' : 'text-gray-700'}`}>
+                      {opt}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            <Pressable
+              onPress={applyFilters}
+              className="bg-blue-600 rounded-2xl h-14 items-center justify-center mb-1"
+            >
+              <Text className="text-white font-bold text-base tracking-wide">Show results</Text>
+            </Pressable>
+          </ScrollView>
+        </View>
+      </Modal>
     </View>
   )
 }
