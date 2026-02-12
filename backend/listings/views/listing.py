@@ -31,6 +31,7 @@ from ..serializers import (
 )
 
 from ..services import DuplicateDetector
+from listings.filters import ListingFilter
 
 
 @extend_schema(tags=['Listings'])
@@ -48,7 +49,7 @@ class ListingViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
 
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
-    filterset_fields = ['type', 'status', 'breed', 'size', 'color', 'gender']
+    filterset_class = ListingFilter
     search_fields = ['title', 'description', 'dog_name']
 
     def perform_create(self, serializer):

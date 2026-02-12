@@ -117,6 +117,24 @@ class PublicListingsApiTests(APITestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(len(res.data['results']), 2)
 
+    def test_filter_listings_multi_select(self):
+        """Test filtering listings with multiple values (comma-separated)."""
+        create_listing(self.user,
+                       title='Small male', size='small', gender='male')
+        create_listing(self.user,
+                       title='Medium female', size='medium', gender='female')
+        create_listing(self.user,
+                       title='Large male', size='large', gender='male')
+
+        # Multi-select size: small,medium → should return 2
+        res = self.client.get(LISTINGS_URL, {'size': 'small,medium'})
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        titles = [r['title'] for r in res.data['results']]
+        self.assertIn('Small male', titles)
+        self.assertIn('Medium female', titles)
+        self.assertNotIn('Large male', titles)
+
     def test_retrieve_listing_detail_success(self):
         """Test that unauthenticated users can view listing details"""
         url = detail_url(self.listing.id)
