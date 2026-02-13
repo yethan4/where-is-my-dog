@@ -1,12 +1,13 @@
 import { View, Text, Pressable, Image } from 'react-native'
 import React from 'react'
+import { useRouter } from 'expo-router'
 import { FontAwesome5, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 
 type ListingType = 'lost' | 'found'
 type ListingStatus = 'active' | 'expired' | 'found' | 'returned'
 
 
-export interface ListingItem {
+export interface ListingCardItem {
     id: number;
     type: ListingType;
     status: ListingStatus;
@@ -25,9 +26,16 @@ export interface ListingItem {
 }
 
 
-const ListingCard = ({ item }: {item: ListingItem}) => {
+const ListingCard = ({ item }: {item: ListingCardItem}) => {
+    const router = useRouter()
+
   return (
-    <Pressable className="bg-white min-h-64 rounded-2xl mb-4 pb-2 shadow-sm border border-gray-100 overflow-hidden active:backdrop-opacity-95">
+    <Pressable 
+    	className="bg-white min-h-64 rounded-2xl mb-4 pb-2 shadow-sm border border-gray-100 overflow-hidden active:backdrop-opacity-95"
+		onPress={() => {
+			router.push(`/listing/${item.id}`)
+		}}
+	>
         <View className="items-center flex-row pt-3 pb-1 px-4">
             <Text 
             className="flex-1 text-xl font-bold"

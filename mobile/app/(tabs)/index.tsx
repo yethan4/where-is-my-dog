@@ -1,11 +1,11 @@
 import { View, Text, Pressable, FlatList, Modal, TextInput, ScrollView} from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { Ionicons } from '@expo/vector-icons';
-import ListingCard, { ListingItem } from "@/components/ListingCard";
+import ListingCard, { ListingCardItem } from "@/components/ListingCard";
 import axios from "axios";
 
 interface ListingsResponse {
-  results: ListingItem[];
+  results: ListingCardItem[];
 }
 
 interface Filters {
@@ -50,7 +50,7 @@ const BREED_OPTIONS = [
 ];
 
 const index = () => {
-  const [listings, setListings] = useState<ListingItem[]>([]);
+  const [listings, setListings] = useState<ListingCardItem[]>([]);
   const [listingType, setListingType] = useState<'found' | 'lost'>('lost');
   const [loading, setLoading] = useState<boolean>(true);
   const [showFilters, setShowFilters] = useState<boolean>(false);
