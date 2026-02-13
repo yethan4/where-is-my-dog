@@ -36,7 +36,7 @@ const ListingCard = ({ item }: {item: ListingItem}) => {
             >
             {item.title}
             </Text>
-            {item.reward_offered != '0.00' && <View className="items-start h-full ml-1">
+            {!!item.reward_offered && <View className="items-start h-full ml-1">
             <Text className="py-1 px-2 rounded-full bg-green-50 text-green-700 font-bold text-sm">
                 {item.reward_offered} PLN
             </Text>
@@ -45,13 +45,18 @@ const ListingCard = ({ item }: {item: ListingItem}) => {
         <View className="flex-row pt-2 px-2">
             <View>
             <View className="relative mb-2">
-                {item.primary_photo && (
+                {!!item.primary_photo ? (
                 <Image 
                     source={{ uri: item.primary_photo }}
                     className="w-40 h-40 rounded-lg mr-4"
                 />
+                ) : (
+                <Image 
+                    source={require('../assets/images/dog-placeholder.png')}
+                    className="w-40 h-40 rounded-lg mr-4"
+                /> 
                 )}
-                {item?.dog_name && 
+                {!!item?.dog_name && 
                 <View className="absolute top-36 left-0 right-2 items-center">
                 <View className="px-3 py-1 bg-red-500 rounded-xl">
                     <Text className="text-slate-50 text-sm font-semibold tracking-wider">
@@ -86,10 +91,12 @@ const ListingCard = ({ item }: {item: ListingItem}) => {
                 </View>
 
                 {/* age */}
-                <View className="flex-row items-center bg-gray-100 px-2.5 py-1.5 rounded-full">
-                <MaterialCommunityIcons name="clock-outline" size={16} color="#4b5563" />
-                <Text className="text-gray-700 text-xs font-semibold ml-1">{item.age_estimate}</Text>
-                </View>
+                {!!item.age_estimate && (
+                    <View className="flex-row items-center bg-gray-100 px-2.5 py-1.5 rounded-full">
+                        <MaterialCommunityIcons name="clock-outline" size={16} color="#4b5563" />
+                        <Text className="text-gray-700 text-xs font-semibold ml-1">{item.age_estimate}</Text>
+                    </View>
+                )}
 
                 {/* color */}
                 <View className="flex-row items-center bg-gray-100 px-2.5 py-1.5 rounded-full">
