@@ -10,6 +10,12 @@ class PhotoSerializer(serializers.ModelSerializer):
     Serializer for Photo model.
     Used for displaying photos attached to listings.
     """
+    cloudinary_url = serializers.SerializerMethodField()
+
+    def get_cloudinary_url(self, obj):
+        if obj.cloudinary_url:
+            return obj.cloudinary_url.url
+        return None
 
     class Meta:
         model = Photo
