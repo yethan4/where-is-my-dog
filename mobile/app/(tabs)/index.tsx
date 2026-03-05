@@ -1,8 +1,10 @@
-import { View, Text, Pressable, FlatList, Modal, TextInput, ScrollView} from 'react-native'
+import { View, Text, Pressable, FlatList, Modal, ScrollView} from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { Ionicons } from '@expo/vector-icons';
 import ListingCard, { ListingCardItem } from "@/components/ListingCard";
 import axios from "axios";
+import { COLOR_OPTIONS, GENDER_OPTIONS, SIZE_OPTIONS } from "@/constants/dogOptions";
+import BreedPicker from "@/components/BreedPicker";
 
 interface ListingsResponse {
   results: ListingCardItem[];
@@ -22,32 +24,7 @@ const DEFAULT_FILTERS: Filters = {
   size: [],
 };
 
-const SIZE_OPTIONS = [
-  { value: 'small', label: 'Small', sub: 'up to 10kg' },
-  { value: 'medium', label: 'Medium', sub: '10–25kg' },
-  { value: 'large', label: 'Large', sub: '25kg+' },
-] as const;
 
-const GENDER_OPTIONS = [
-  { value: 'male', label: '♂ Male', icon: 'male' },
-  { value: 'female', label: '♀ Female', icon: 'female' },
-  { value: 'unknown', label: '? Unknown', icon: null },
-] as const;
-
-const COLOR_OPTIONS = [
-  { value: 'black', label: 'Black', dot: '#1a1a1a' },
-  { value: 'brown', label: 'Brown', dot: '#7c4a1e' },
-  { value: 'white', label: 'White', dot: '#f0f0f0', border: true },
-  { value: 'golden', label: 'Golden', dot: '#d4a520' },
-  { value: 'gray', label: 'Gray', dot: '#9ca3af' },
-  { value: 'multi', label: 'Multi', dot: null },
-] as const;
-
-const BREED_OPTIONS = [
-  'Labrador', 'Golden Retriever', 'German Shepherd',
-  'Beagle', 'Husky', 'Poodle', 'Chihuahua', 'Shiba Inu',
-  'Border Collie', 'Bulldog', 'Mixed', 'Dachshund', 'Unknown',
-];
 
 const index = () => {
   const [listings, setListings] = useState<ListingCardItem[]>([]);
@@ -290,32 +267,20 @@ const index = () => {
             
             {/* Breed */}
             <Text className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2.5">Breed</Text>
-            <View className="flex-row flex-wrap mb-6" style={{ gap: 8 }}>
-              {BREED_OPTIONS.map(opt => {
-                const active = draftFilters.breed.includes(opt);
-                return (
-                  <Pressable
-                    key={opt}
-                    onPress={() => toggleFilter('breed', opt)}
-                    className={`px-3.5 py-2.5 rounded-full border-2 ${
-                      active ? 'bg-blue-600 border-blue-600' : 'bg-white border-gray-100'
-                    }`}
-                  >
-                    <Text className={`text-sm font-semibold ${active ? 'text-white' : 'text-gray-700'}`}>
-                      {opt}
-                    </Text>
-                  </Pressable>
-                );
-              })}
+            <View className="mb-6">
+              <BreedPicker
+                mode="multi"
+                value={draftFilters.breed}
+                onChange={breeds => setDraftFilters(prev => ({ ...prev, breed: breeds }))}
+              />
             </View>
-
-            <Pressable
-              onPress={applyFilters}
-              className="bg-blue-600 rounded-2xl h-14 items-center justify-center mb-1"
-            >
-              <Text className="text-white font-bold text-base tracking-wide">Show results</Text>
-            </Pressable>
           </ScrollView>
+              <Pressable
+                onPress={applyFilters}
+                className="absolute left-2 right-2 bottom-2 bg-blue-600 rounded-2xl h-14 items-center justify-center mb-1"
+              >
+                <Text className="text-white font-bold text-base tracking-wide">Show results</Text>
+            </Pressable>
         </View>
       </Modal>
     </View>
