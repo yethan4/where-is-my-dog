@@ -1,25 +1,27 @@
-import { View, Text, TextInput, Pressable } from 'react-native'
+import { View, Text, Pressable } from 'react-native'
 import React, { useState } from 'react'
 import { ListingCreate } from "@/types/listing";
 import { FontAwesome5 } from "@expo/vector-icons";
 import BasicInfoStep from "@/components/create-listing/BasicInfoStep";
 import DogDetailsStep from "@/components/create-listing/DogDetailsStep";
-import ExtrasStep from "@/components/create-listing/ExtrasStep";
+import LocationStep from "@/components/create-listing/LocationStep";
 import PhotosStep from "@/components/create-listing/PhotosStep";
+import FinalStep from "@/components/create-listing/FinalStep";
 
 
 const create = () => {
-  const [currentStep, setCurrentStep] = useState<number>(1); // 1-basic info 2-dog details 3-photos 4-extras + summary
+  const [currentStep, setCurrentStep] = useState<number>(1); // 1-basic info 2-dog details 3-photos 4-location 5-summary
   const [listingState, setListingState] = useState<ListingCreate>();
 
 
   const StepIndicator = ({ step }: { step: number }) => {
-    const isActive = currentStep === step;
-    const isCompleted = currentStep > step;
+  const isActive = currentStep === step;
+  const isCompleted = currentStep > step;
 
+  const labels = ["Basic", "Dog", "Photo", "Loc", "Final"];
 
-    return (
-      <View className="items-center flex-1">
+  return (
+      <View className="items-center flex-1 z-10">
         <View 
           className={`w-8 h-8 rounded-full items-center justify-center border-2 
             ${isActive ? 'bg-blue-600 border-blue-600' : isCompleted ? 'bg-green-500 border-green-500' : 'bg-white border-gray-300'}`}
@@ -30,8 +32,11 @@ const create = () => {
             <Text className={`${isActive ? 'text-white font-bold' : 'text-gray-500'}`}>{step}</Text>
           )}
         </View>
-        <Text className={`text-[10px] mt-1 font-medium ${isActive ? 'text-blue-600' : 'text-gray-400'}`}>
-          {step === 1 ? 'Basic' : step === 2 ? 'Dog' : step === 3 ? 'Photo' : 'Final'}
+        <Text 
+          numberOfLines={1}
+          className={`text-[9px] mt-1 font-medium uppercase ${isActive ? 'text-blue-600' : 'text-gray-400'}`}
+        >
+          {labels[step - 1]}
         </Text>
       </View>
     );
@@ -46,7 +51,9 @@ const create = () => {
       case 3:
         return <PhotosStep />
       case 4:
-        return <ExtrasStep />
+        return <LocationStep />
+      case 5:
+        return <FinalStep />
     }
   }
 
@@ -61,10 +68,10 @@ const create = () => {
         </Pressable>
 
         <View className="flex-row flex-1 px-4 items-center">
-          {[1, 2, 3, 4].map((s) => (
+          {[1, 2, 3, 4, 5].map((s) => (
             <React.Fragment key={s}>
                 <StepIndicator step={s} />
-                {s < 4 && <View className={`h-[2px] flex-1 -mt-4 ${currentStep > s ? 'bg-green-500' : 'bg-gray-200'}`} />}
+                {s < 5 && <View className={`h-[2px] flex-1 -mt-4 ${currentStep > s ? 'bg-green-500' : 'bg-gray-200'}`} />}
             </React.Fragment>
           ))
 
@@ -72,8 +79,8 @@ const create = () => {
         </View>
 
         <Pressable 
-          className={`p-2 rounded-full ${currentStep === 4 ? 'opacity-0' : 'bg-gray-50'}`}
-          onPress={() => currentStep < 4 && setCurrentStep(currentStep + 1)}
+          className={`p-2 rounded-full ${currentStep === 5 ? 'opacity-0' : 'bg-gray-50'}`}
+          onPress={() => currentStep < 5 && setCurrentStep(currentStep + 1)}
         >
           <FontAwesome5 name="chevron-right" size={16} color="#4b5563" />
         </Pressable>
