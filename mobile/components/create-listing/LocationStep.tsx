@@ -1,18 +1,38 @@
 import { View, Text, Pressable, Alert, ScrollView } from 'react-native';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Ionicons } from "@expo/vector-icons";
 
 import * as Location from 'expo-location';
 import MapView, { Marker, Circle } from 'react-native-maps';
 
 import Slider from '@react-native-community/slider'
+import { LocationState } from "@/app/(tabs)/create";
 
-const LocationStep = () => {
-  const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(null);
-  const [radius, setRadius] = useState(300);
-  const [address, setAddress] = useState<string | null>(null);
+type Props = {
+  location: LocationState
+  setLocation: (location: LocationState) => void;
+  listingType: 'lost' | 'found';
+  setCanContinue: (flag: boolean) => void;
+}
+
+const LocationStep = ({location, setLocation, listingType, setCanContinue}: Props) => {
+  const { coords, radius, address } = location;
 
   const mapRef = useRef<MapView>(null);
+
+  useEffect(() => {
+    setCanContinue(coords !== null);
+  }, [coords]);
+
+  useEffect(() => {
+    if (!coords) return;
+    mapRef.current?.animateToRegion({
+      latitude: coords.latitude,
+      longitude: coords.longitude,
+      latitudeDelta: 0.01,
+      longitudeDelta: 0.01,
+    }, 800);
+  }, []);
 
   const getCurrentLocationAsync = async () => {
     let { status } = await Location.requestForegroundPermissionsAsync();
@@ -23,7 +43,7 @@ const LocationStep = () => {
 
     const loc = await Location.getCurrentPositionAsync({});
     console.log(loc.coords);
-    setCoords({latitude: loc.coords.latitude, longitude: loc.coords.longitude });
+    const newCoords = { latitude: loc.coords.latitude, longitude: loc.coords.longitude };
 
     mapRef.current?.animateToRegion({
       latitude: loc.coords.latitude,
@@ -32,18 +52,31 @@ const LocationStep = () => {
       longitudeDelta: 0.01
     }, 800);
 
-    resolveAddressAsync(loc.coords.latitude, loc.coords.longitude);
+    resolveAddressAsync(newCoords);
   }
 
-  const resolveAddressAsync = async (latitude: number, longitude: number) => {
-    const results = await Location.reverseGeocodeAsync({latitude, longitude});
-    if(results.length > 0){
+  const resolveAddressAsync = async (newCoords: { latitude: number; longitude: number }) => {
+    const results = await Location.reverseGeocodeAsync(newCoords);
+    if (results.length > 0) {
       const r = results[0];
 
-      const parts = [r.street, r.district, r.city].filter(Boolean);
-      setAddress(parts.join(', '));
+      const street = [r.street, listingType === 'found' && r.streetNumber]
+        .filter(Boolean)
+        .join(' ');
+
+      const parts = [
+        street,
+        r.district,
+        r.city,
+      ].filter(Boolean);
+
+      setLocation({
+        ...location,
+        coords: newCoords,
+        address: parts.join(', '),
+      });
     }
-  }
+  };
 
   return (
     <ScrollView
@@ -82,8 +115,7 @@ const LocationStep = () => {
             }}
             onPress={(e) => {
               const { latitude, longitude } = e.nativeEvent.coordinate;
-              setCoords({ latitude, longitude });
-              resolveAddressAsync(latitude, longitude);
+              resolveAddressAsync({ latitude, longitude });
             }}
           >
             {coords && (
@@ -91,7 +123,7 @@ const LocationStep = () => {
                 <Marker
                   coordinate={coords}
                   draggable
-                  onDragEnd={(e) => setCoords(e.nativeEvent.coordinate)}
+                  onDragEnd={(e) => setLocation({ ...location, coords: e.nativeEvent.coordinate })}
                 />
                 <Circle
                   center={coords}
@@ -117,7 +149,7 @@ const LocationStep = () => {
           maximumValue={1000}
           step={50}
           value={radius}
-          onValueChange={setRadius}
+          onValueChange={(value) => setLocation({ ...location, radius: value })}
         />
         <Text className="mb-2 text-gray-600 text-sm font-bold text-center">Location {radius}m radius</Text>
 

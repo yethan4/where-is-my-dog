@@ -1,28 +1,40 @@
 import { View, Text, ScrollView, Pressable, TextInput, Switch } from 'react-native'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { FontAwesome5, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons"
 import BreedPicker from "@/components/BreedPicker"
 import { COLOR_OPTIONS } from "@/constants/dogOptions"
+import { ListingCreate } from "@/types/listing"
 
-const DogDetailsStep = () => {
-  const [breedActive, setBreedActive] = useState<boolean>(false);
-  const [breed, setBreed] = useState<string>("");
-  const [sizeActive, setSizeActive] = useState<boolean>(false);
-  const [size, setSize] = useState<string>("");
+type Props = {
+  onChange: (data: Partial<ListingCreate>) => void;
+  initialData?: Partial<ListingCreate>;
+}
+
+const DogDetailsStep = ({onChange, initialData}: Props) => {
+  const [breedActive, setBreedActive] = useState<boolean>(!!initialData?.breed);
+  const [breed, setBreed] = useState<string>(initialData?.breed ?? "");
+  const [sizeActive, setSizeActive] = useState<boolean>(!!initialData?.size);
+  const [size, setSize] = useState<'small' | 'medium' | 'large' >(initialData?.size ?? "small");
   const [colorActive, setColorActive] = useState<boolean>(true);
-  const [colors, setColors] = useState<string[]>([]);
-  const [genderActive, setGenderActive] = useState<boolean>(false);
-  const [gender, setGender] = useState<string>("");
-  const [extrasActive, setExtrasActive] = useState<boolean>(false);
-  const [dogName, setDogName] = useState<string>("");
-  const [age, setAge] = useState<string>("");
-  const [specialMarks, setSpecialMarks] = useState<string>("");
-  const [microchip, setMicrochip] = useState<boolean>(false);
-  const [hasCollar, setHasCollar] = useState<boolean>(false);
-  const [collarColor, setCollarColor] = useState<string>("");
+  const [colors, setColors] = useState<string[]>(initialData?.color ? initialData.color.split(',').filter(Boolean) : []);
+  const [genderActive, setGenderActive] = useState<boolean>(!!initialData?.gender);
+  const [gender, setGender] = useState<'male' | 'female' | 'unknown'>(initialData?.gender ?? 'unknown');
+  const [extrasActive, setExtrasActive] = useState<boolean>(!!(initialData?.dog_name || initialData?.age_estimate || initialData?.special_marks || initialData?.has_collar));
+  const [dogName, setDogName] = useState<string>(initialData?.dog_name ?? "");
+  const [age, setAge] = useState<string>(initialData?.age_estimate ?? "");
+  const [specialMarks, setSpecialMarks] = useState<string>(initialData?.special_marks ?? "");
+  //const [microchip, setMicrochip] = useState<boolean>(false);
+  const [hasCollar, setHasCollar] = useState<boolean>(initialData?.has_collar ?? false);
+  const [collarColor, setCollarColor] = useState<string>(initialData?.collar_color ?? "");
 
   const toggleColor = (val: string) =>
     setColors(prev => prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val]);
+
+  useEffect(() => {
+    const color = colors.join(',');
+    onChange({breed, size, color: color, gender, has_collar: hasCollar, collar_color: collarColor, dog_name: dogName, age_estimate: age, special_marks: specialMarks, })
+
+  },[breed, size, colors, gender, dogName, age, specialMarks, hasCollar, collarColor])
 
   return (
     <ScrollView
@@ -230,13 +242,13 @@ const DogDetailsStep = () => {
               />
             </View>
 
-            <View className="flex-row items-center justify-between">
+            {/* <View className="flex-row items-center justify-between">
               <View className="flex-row items-center gap-2">
                 <MaterialCommunityIcons name="integrated-circuit-chip" size={18} color="#6366f1" />
                 <Text className="font-semibold text-gray-800">Microchip</Text>
               </View>
               <Switch value={microchip} onValueChange={setMicrochip} />
-            </View>
+            </View> */}
 
             <View>
               <View className="flex-row items-center justify-between">

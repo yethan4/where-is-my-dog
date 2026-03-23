@@ -1,15 +1,27 @@
 import { View, Text, ScrollView, Pressable, TextInput } from 'react-native'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { FontAwesome5, FontAwesome6 } from "@expo/vector-icons"
-import { ListingType } from "@/types/listing";
+import { ListingCreate, ListingType } from "@/types/listing";
 
+type Props = {
+  onChange: (data: Partial<ListingCreate>) => void;
+  initialData?: Partial<ListingCreate>;
+  setCanContinue: (flag: boolean) => void;
+}
 
-const BasicInfoStep = () => {
-  const [listingType, setListingType] = useState<ListingType>();
-  const [title, setTitle] = useState<string>("");
-  const [description, setDescription] = useState<string>("");
+const BasicInfoStep = ({onChange, initialData, setCanContinue}: Props) => {
+  const [listingType, setListingType] = useState<ListingType | undefined>(initialData?.type);
+  const [title, setTitle] = useState<string>(initialData?.title ?? "");
+  const [description, setDescription] = useState<string>(initialData?.description ?? "");
 
+  const isValid = (): boolean => {
+    return title.trim().length > 0 && description.trim().length > 0;
+  };
 
+  useEffect(() => {
+    onChange({ type: listingType, title, description})
+    isValid() ? setCanContinue(true) : setCanContinue(false);
+  }, [listingType, title, description])
 
   return (
     <ScrollView
@@ -67,6 +79,7 @@ const BasicInfoStep = () => {
             textAlignVertical="top"
             placeholderTextColor="#9CA3AF" 
             className="border-2 border-gray-200 rounded-xl py-4 px-4 font-semibold min-h-48"
+            value={description}
             onChangeText={setDescription}
           />
           

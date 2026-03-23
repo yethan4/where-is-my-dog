@@ -26,14 +26,14 @@ export interface ListingCardItem {
 }
 
 
-const ListingCard = ({ item }: {item: ListingCardItem}) => {
+const ListingCard = ({ item, isPreview=false }: {item: ListingCardItem, isPreview:boolean}) => {
     const router = useRouter()
 
   return (
     <Pressable 
     	className="bg-white min-h-64 rounded-2xl mb-4 pb-2 shadow-sm border border-gray-100 overflow-hidden active:backdrop-opacity-95"
 		onPress={() => {
-			router.push(`/listing/${item.id}`)
+			!isPreview && router.push(`/listing/${item.id}`)
 		}}
 	>
         <View className="items-center flex-row pt-3 pb-1 px-4">

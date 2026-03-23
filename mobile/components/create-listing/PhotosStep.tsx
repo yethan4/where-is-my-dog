@@ -3,11 +3,12 @@ import React, { useState } from 'react';
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 
+type Props = {
+  photos: string[];
+  setPhotos: (photos: string[]) => void;
+}
 
-
-const PhotosStep = () => {
-  const [photos, setPhotos] = useState<string[]>([]);
-
+const PhotosStep = ({photos, setPhotos}: Props) => {
   const pickImageAsync = async() => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
