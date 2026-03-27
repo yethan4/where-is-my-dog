@@ -14,7 +14,7 @@ class PhotoSerializer(serializers.ModelSerializer):
 
     def get_cloudinary_url(self, obj):
         if obj.cloudinary_url:
-            return obj.cloudinary_url.url
+            return str(obj.cloudinary_url)
         return None
 
     class Meta:
