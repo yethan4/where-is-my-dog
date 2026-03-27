@@ -28,9 +28,10 @@ type StepCardProps = {
   location: LocationState;
   setLocation: (location: LocationState) => void;
   setCanContinue: (f :boolean) => void;
+  resetForm: () => void;
 };
 
-const StepCard = ({ step, listingState, handleChange, setPhotos, photos, location, setLocation, setCanContinue }: StepCardProps) => {
+const StepCard = ({ step, listingState, handleChange, setPhotos, photos, location, setLocation, setCanContinue, resetForm }: StepCardProps) => {
   switch(step){
     case 1:
       return <BasicInfoStep onChange={handleChange} initialData={listingState} setCanContinue={setCanContinue} />
@@ -41,7 +42,7 @@ const StepCard = ({ step, listingState, handleChange, setPhotos, photos, locatio
     case 4:
       return <LocationStep location={location} setLocation={setLocation} listingType={listingState.type} setCanContinue={setCanContinue} />
     case 5:
-      return <FinalStep listingData={listingState} photos={photos} location={location} />
+      return <FinalStep listingData={listingState} photos={photos} location={location} resetForm={resetForm} />
     default:
       return null;
   }
@@ -66,6 +67,21 @@ const create = () => {
   const handleChange = useCallback((data: Partial<ListingCreate>): void => {
     setListingState(prev => ({ ...prev, ...data }))
   }, [])
+
+  const resetForm = () => {
+    setListingState({
+      type: 'lost',
+      title: '',
+      description: '',
+    });
+    setPhotos([]);
+    setLocation({
+      coords: null,
+      radius: 300,
+      address: null,
+    });
+    setCurrentStep(1);
+  }
 
   const StepIndicator = ({ step }: { step: number }) => {
     const isActive = currentStep === step;
@@ -96,8 +112,14 @@ const create = () => {
   };
   
   useEffect(() => {
-    setCanContinue([2, 3].includes(currentStep));
-  }, [currentStep])
+    if ([2, 3].includes(currentStep)) {
+      setCanContinue(true);
+    } else if (currentStep === 1) {
+      setCanContinue(listingState.title.trim().length > 0 && listingState.description.trim().length > 0);
+    } else if (currentStep === 4) {
+      setCanContinue(location.coords !== null);
+    }
+  }, [currentStep, listingState.title, listingState.description, location.coords])
 
   return (
     <View className="pt-safe px-4 flex-1">
@@ -141,6 +163,7 @@ const create = () => {
           location={location}
           setLocation={setLocation}
           setCanContinue={setCanContinue}
+          resetForm={resetForm}
         />
       </View>
 
