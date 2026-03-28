@@ -1,21 +1,26 @@
-import { Image, Pressable, ScrollView, Text, View } from 'react-native'
+import { Image, Pressable, ScrollView, Text, View, Alert, Modal, ActivityIndicator } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { useLocalSearchParams, useRouter } from "expo-router"
 import axios from "axios";
 import { FontAwesome5, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { ListingItem } from "@/types/listing";
-
+import { useAuth } from "@/contexts/AuthContext";
 
 
 const Details = () => {
 	const { id } = useLocalSearchParams();
 	const [listingData, setListingData] = useState<ListingItem>();
-	const [loading, setLoading] = useState<boolean>();
+	const [loading, setLoading] = useState<boolean>(false);
+	const [isAuthor, setIsAuthor] = useState<boolean>(false);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
+  const [deleteSuccess, setDeleteSuccess] = useState<boolean>(false);
+  const [deleteError, setDeleteError] = useState<string>('');
 
+	const { authState } = useAuth();
 	const router = useRouter();
 
 	const API_URL = process.env.EXPO_PUBLIC_API_URL;
-	
+
 	const fetchListing = async() => {
 		setLoading(true);
 		try{
@@ -28,9 +33,42 @@ const Details = () => {
 		}
 	}
 
+  const handleDelete = () => {
+    Alert.alert(
+      "Delete Listing",
+      "Are you sure you want to delete this listing? This action cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            setDeleteError('');
+            try {
+              setIsDeleting(true);
+              await axios.delete(`${API_URL}/api/listings/${id}/`, {
+                headers: { Authorization: `Bearer ${authState.token}` },
+              });
+              setDeleteSuccess(true);
+            } catch (e) {
+              console.log(e);
+              setDeleteError('Something went wrong. Please try again.');
+            } finally {
+              setIsDeleting(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
 	useEffect(() => {
 		fetchListing();
 	}, [id])
+
+	useEffect(() => {
+		setIsAuthor(authState?.user?.id == listingData?.user?.id)
+	}, [authState?.user, listingData?.user])
 
 	const hasName = !!listingData?.dog_name;
 
@@ -43,22 +81,22 @@ const Details = () => {
 
 	return (
 		<View className="flex-1">
-			<ScrollView 
+			<ScrollView
 				className="flex-1 bg-white"
 			>
 				<View className="relative">
 					{!!listingData?.photos?.[0]?.cloudinary_url ? (
-						<Image 
+						<Image
 							source={{ uri: listingData?.photos?.[0]?.cloudinary_url }}
 							className="w-full h-96"
 						/>) : (
-							<Image 
+							<Image
 								source={require('../../assets/images/dog-placeholder.png')}
 								className="w-full h-96"
-							/> 
+							/>
 						)}
 
-					<Pressable 
+					<Pressable
 						className="absolute top-12 left-4 z-10 bg-white/80 p-2 rounded-full shadow-sm"
 						onPress={() => router.back()}
 					>
@@ -71,7 +109,7 @@ const Details = () => {
 					</View>
 				</View>
 
-				<View 
+				<View
 					className="flex-1 -mt-6 rounded-t-3xl bg-white pt-6 px-4"
 				>
 					<View className="border-b pb-6 mb-4 border-gray-100">
@@ -80,6 +118,7 @@ const Details = () => {
 								{mainTitle}
 							</Text>
 						)}
+
 
 						{!!subTitle && (
 							<Text className="text-gray-600 tracking-wide mt-1">
@@ -97,9 +136,9 @@ const Details = () => {
 							</View>
 						)}
 					</View>
-						
+
 					<View className="flex-row flex-wrap justify-around border-b pb-6 pt-4 mb-6 border-gray-100">
-						
+
 						<View className="flex items-center gap-1 w-20">
 							<MaterialCommunityIcons name="ruler" size={20} color="#9CA3AF" ></MaterialCommunityIcons>
 							<Text className="text-sm text-gray-400">Size</Text>
@@ -107,10 +146,10 @@ const Details = () => {
 						</View>
 
 						<View className="flex items-center gap-1 w-20">
-							<MaterialCommunityIcons 
-									name={listingData?.has_collar ? "link-variant" : "link-variant-off"} 
-									size={20} 
-									color={listingData?.has_collar ? "#9CA3AF" : "#dc2626"} 
+							<MaterialCommunityIcons
+									name={listingData?.has_collar ? "link-variant" : "link-variant-off"}
+									size={20}
+									color={listingData?.has_collar ? "#9CA3AF" : "#dc2626"}
 							/>
 							<Text className="text-sm text-gray-400">Collar</Text>
 							<Text className="text-gray-700 font-bold text-sm">
@@ -129,7 +168,7 @@ const Details = () => {
 							<Text className="text-sm text-gray-400">Marks</Text>
 							<Text className="text-gray-700 font-bold text-sm">{!!listingData?.special_marks ? 'yes' : 'no'}</Text>
 						</View>
-						
+
 					</View>
 
 					{!!listingData?.special_marks && (
@@ -163,11 +202,11 @@ const Details = () => {
 					<View className="mb-7">
 						<Text className="text-lg font-semibold mb-2">Last Location</Text>
 						<View className="flex gap-2">
-							<View 
+							<View
 								className="flex-row items-center px-4 py-2 rounded-lg bg-gray-50 border border-gray-100 "
 							>
 								<Ionicons name="location" size={24} color="#EF4444" />
-								
+
 									<View className="flex-col ml-6">
 										<Text className="font-semibold tracking-wider">{listingData?.primary_location?.address}</Text>
 										<View className="flex-row gap-2">
@@ -189,7 +228,7 @@ const Details = () => {
 
 						<View className="ml-3 flex-1 justify-center">
 							<Text className="text-base font-bold text-gray-800 leading-tight">
-								{listingData?.user.username || "Anonim"}
+								{listingData?.user?.username || "Anonim"}
 							</Text>
 							<Text className="text-xs font-medium text-gray-400">
 								Author
@@ -202,7 +241,7 @@ const Details = () => {
 							</Text>
 						</View>
 					</View>
-					
+
 				</View>
 
 				<View className="h-28 w-full bg-gray-100">
@@ -210,14 +249,62 @@ const Details = () => {
 				</View>
 			</ScrollView>
 
-			<Pressable className="absolute bottom-7 left-6 right-6 flex-row p-4 rounded-3xl items-center justify-center bg-slate-800">
-				<Ionicons 
-					name="chatbubbles" 
-					color="white" 
+			{!isAuthor && (<Pressable className="absolute bottom-7 left-6 right-6 flex-row p-4 rounded-3xl items-center justify-center bg-slate-800">
+				<Ionicons
+					name="chatbubbles"
+					color="white"
 					size={24}
 				/>
 				<Text className="text-white text-2xl font-bold ml-2">Message</Text>
 			</Pressable>
+			)}
+
+			{isAuthor && (
+				<View className="absolute bottom-10 left-6 right-6 flex-row justify-between gap-3">
+					<Pressable className="bg-slate-800 flex-1 py-4 rounded-2xl flex-row items-center justify-center gap-2 shadow-sm active:opacity-80">
+						<Ionicons name="pencil-sharp" size={18} color="white" />
+						<Text className="text-white text-lg font-semibold">Edit</Text>
+					</Pressable>
+					<Pressable
+            className="bg-red-50 border border-red-200 px-6 py-4 rounded-2xl items-center justify-center active:bg-red-100"
+            onPress={handleDelete}
+          >
+						<Ionicons name="trash-outline" size={20} color="#ef4444" />
+					</Pressable>
+				</View>
+			)}
+
+			<Modal visible={isDeleting || deleteSuccess} transparent animationType="fade">
+				<View className="flex-1 justify-center items-center bg-black/50 px-6">
+					<View className="bg-white w-full rounded-2xl p-6 items-center gap-3">
+
+						{isDeleting ? (
+							<>
+								<ActivityIndicator size="large" color="#ef4444" />
+								<Text className="text-gray-800 font-bold text-lg">Deleting listing...</Text>
+								<Text className="text-gray-400 text-sm">Please wait a moment</Text>
+							</>
+						) : (
+							<>
+								<FontAwesome5 name="check" size={24} color="#ef4444" />
+								{!!deleteError ? (
+									<Text className="text-red-500 text-sm font-medium text-center">{deleteError}</Text>
+								): (
+                  <Text className="text-xl font-bold text-center text-gray-800">Listing deleted!</Text>
+                )}
+
+								<Pressable
+									className="bg-slate-800 w-full py-4 rounded-xl items-center mt-2"
+									onPress={() => router.replace('/(tabs)')}
+								>
+									<Text className="text-white font-bold text-base">Go to home screen</Text>
+								</Pressable>
+							</>
+						)}
+
+					</View>
+				</View>
+			</Modal>
 		</View>
 	)
 }
