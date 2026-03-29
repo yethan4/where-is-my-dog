@@ -1,37 +1,25 @@
 import { Image, Pressable, ScrollView, Text, View, Alert, Modal, ActivityIndicator } from 'react-native'
 import React, { useEffect, useState } from 'react'
-import { useLocalSearchParams, useRouter } from "expo-router"
+import { Stack, useLocalSearchParams, useRouter } from "expo-router"
 import axios from "axios";
 import { FontAwesome5, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { ListingItem } from "@/types/listing";
 import { useAuth } from "@/contexts/AuthContext";
+import { useListing } from "@/contexts/ListingContext";
 
 
 const Details = () => {
 	const { id } = useLocalSearchParams();
-	const [listingData, setListingData] = useState<ListingItem>();
-	const [loading, setLoading] = useState<boolean>(false);
 	const [isAuthor, setIsAuthor] = useState<boolean>(false);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const [deleteSuccess, setDeleteSuccess] = useState<boolean>(false);
   const [deleteError, setDeleteError] = useState<string>('');
 
 	const { authState } = useAuth();
+  const { listing: listingData, loading } = useListing()
 	const router = useRouter();
 
 	const API_URL = process.env.EXPO_PUBLIC_API_URL;
-
-	const fetchListing = async() => {
-		setLoading(true);
-		try{
-			const response = await axios.get<ListingItem>(`${API_URL}/api/listings/${id}/`);
-			setListingData(response.data);
-		} catch (error) {
-			console.error('Failed to fetch listing:', error);
-		} finally {
-			setLoading(false);
-		}
-	}
 
   const handleDelete = () => {
     Alert.alert(
@@ -63,10 +51,6 @@ const Details = () => {
   };
 
 	useEffect(() => {
-		fetchListing();
-	}, [id])
-
-	useEffect(() => {
 		setIsAuthor(authState?.user?.id == listingData?.user?.id)
 	}, [authState?.user, listingData?.user])
 
@@ -81,6 +65,7 @@ const Details = () => {
 
 	return (
 		<View className="flex-1">
+			<Stack.Screen options={{ headerShown: false }} />
 			<ScrollView
 				className="flex-1 bg-white"
 			>
@@ -91,7 +76,7 @@ const Details = () => {
 							className="w-full h-96"
 						/>) : (
 							<Image
-								source={require('../../assets/images/dog-placeholder.png')}
+								source={require('../../../assets/images/dog-placeholder.png')}
 								className="w-full h-96"
 							/>
 						)}
@@ -261,7 +246,10 @@ const Details = () => {
 
 			{isAuthor && (
 				<View className="absolute bottom-10 left-6 right-6 flex-row justify-between gap-3">
-					<Pressable className="bg-slate-800 flex-1 py-4 rounded-2xl flex-row items-center justify-center gap-2 shadow-sm active:opacity-80">
+					<Pressable
+            onPress={() => router.push(`/listing/${id}/edit`)}
+            className="bg-slate-800 flex-1 py-4 rounded-2xl flex-row items-center justify-center gap-2 shadow-sm active:opacity-80"
+          >
 						<Ionicons name="pencil-sharp" size={18} color="white" />
 						<Text className="text-white text-lg font-semibold">Edit</Text>
 					</Pressable>

@@ -1,115 +1,45 @@
-import { View, Text, Pressable, Switch, TextInput, Keyboard, Image, ScrollView, ActivityIndicator, Modal } from 'react-native'
+import { View, Text, Pressable, Switch, TextInput, Keyboard, Image, ScrollView } from 'react-native'
 import React, { useState } from 'react'
 import { Ionicons, FontAwesome5, MaterialCommunityIcons } from "@expo/vector-icons"
 import ListingCard from "../ListingCard"
-import { ListingCreate } from "@/types/listing"
-import { LocationState } from "@/app/(tabs)/create"
+import { ListingCreate, LocationState, PhotoManage } from "@/types/listingForm"
+
 import MapView, { Circle, Marker } from "react-native-maps"
-import { useAuth } from "@/contexts/AuthContext"
-import axios from 'axios';
-import { useRouter } from "expo-router"
 
 type Props = {
+  type: 'create' | 'edit';
   listingData: ListingCreate;
-  photos: string[];
+  photos: PhotoManage[];
   location: LocationState;
   resetForm: () => void;
+  onSaveListing: () => void;
+  loading: boolean;
+  error: string;
+  confirmedReward: string;
+  setConfirmedReward: (reward: string) => void;
 }
 
-const FinalStep = ({listingData, photos, location, resetForm}: Props) => {
-  const [rewardActive, setRewardActive] = useState<boolean>(false);
-  const [reward, setReward] = useState<string>("");
-  const [isConfirmed, setIsConfirmed] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string>('');
-  const [success, setSuccess] = useState<boolean>(false);
-  const [newListingId, setNewListingId] = useState<number | null>(null);
-
-  const { authState } = useAuth();
-  const router = useRouter();
-
-  const API_URL = process.env.EXPO_PUBLIC_API_URL;
+const FinalStep = ({type, listingData, photos, location, onSaveListing, loading, error, confirmedReward, setConfirmedReward}: Props) => {
+  const [rewardActive, setRewardActive] = useState<boolean>(!!confirmedReward);
+  const [reward, setReward] = useState<string>(confirmedReward);
+  const [isConfirmed, setIsConfirmed] = useState<boolean>(!!confirmedReward);
 
   const toggleReward = (value: boolean) => {
     setRewardActive(value);
     if (!value) {
       setReward("0");
       setIsConfirmed(false);
+      setConfirmedReward("");
     }
   };
 
   const handleConfirm = () => {
     if (reward.length > 0) {
       setIsConfirmed(true);
+      setConfirmedReward(reward);
       Keyboard.dismiss();
     }
   };
-
-  const handleCreateListing = async () => {
-    setError('');
-    try {
-      setLoading(true);
-
-      const listingPayload = {
-        ...listingData,
-        reward_offered: rewardActive && !!reward ? reward : ''
-      }
-
-      const locationPayload = {
-        point: {
-          type: 'Point',
-          coordinates: [
-            location.coords!.latitude,
-            location.coords!.longitude
-          ]
-        },
-        address: location.address,
-        location_type: 'approximate',
-        is_primary: true,
-        notes: '',
-        accuracy_meters: location.radius
-      }
-
-      const resultListing = await axios.post(`${API_URL}/api/listings/`, listingPayload,
-        {
-          headers: { Authorization: `Bearer ${authState.token}`}
-        })
-
-      const listingId = resultListing.data.id;
-      setNewListingId(listingId);
-
-      await axios.post(`${API_URL}/api/listings/${listingId}/location/`, locationPayload, {
-        headers: { Authorization: `Bearer ${authState.token}`}
-      })
-
-      for (let i=0; i<photos.length; i++) {
-        const uri = photos[i]
-        const filename = uri.split('/').pop() ?? 'photo.jpg'
-        const match = /\.(\w+)/.exec(filename)
-        const type = match ? `image/${match[1]}` : 'image/jpeg'
-        const formData = new FormData();
-
-        formData.append('photo', {uri, name:filename, type} as any);
-        formData.append('order_index', String(i))
-
-        await axios.post(`${API_URL}/api/listings/${listingId}/upload_photo/`, formData,
-          {
-            headers: {
-              Authorization: `Bearer ${authState?.token}`,
-              'Content-Type': 'multipart/form-data',
-            }
-          }
-        )
-      }
-
-      setSuccess(true);
-    } catch (e) {
-      console.log(e);
-      setError('Something went wrong. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  }
 
   return (
     <>
@@ -197,7 +127,7 @@ const FinalStep = ({listingData, photos, location, resetForm}: Props) => {
             id: 0,
             status: 'active',
             primary_location: location.address,
-            primary_photo: photos[0],
+            primary_photo: photos[0].uri || photos[0].cloudinary_url || null,
             created_at: '2000-01-01',
             reward_offered: reward,
             has_collar: listingData.has_collar ?? false,
@@ -287,8 +217,8 @@ const FinalStep = ({listingData, photos, location, resetForm}: Props) => {
             <View className="gap-2">
               <Text className="text-gray-400 text-xs font-bold uppercase tracking-wider">Photos</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row gap-2">
-                {photos.map((uri, i) => (
-                  <Image key={i} source={{ uri }} className="w-24 h-24 rounded-xl mr-2" />
+                {photos.map((photo, i) => (
+                  <Image key={i} source={{ uri: photo.uri }} className="w-24 h-24 rounded-xl mr-2" />
                 ))}
               </ScrollView>
             </View>
@@ -300,50 +230,17 @@ const FinalStep = ({listingData, photos, location, resetForm}: Props) => {
         )}
 
         <Pressable
-          onPress={handleCreateListing}
+          onPress={onSaveListing}
           disabled={loading}
           className={`items-center bg-green-600 rounded-2xl py-4 ${loading ? 'opacity-60' : ''}`}
         >
-          <Text className="text-white font-bold text-xl">Create Listing</Text>
+          <Text className="text-white font-bold text-xl">
+            {type=='create' ? 'Create Listing' : 'Update Listing'}
+          </Text>
         </Pressable>
 
       </ScrollView>
 
-      <Modal visible={loading || success} transparent animationType="fade">
-        <View className="flex-1 justify-center items-center bg-black/50 px-6">
-          <View className="bg-white w-full rounded-2xl p-6 items-center gap-3">
-
-            {loading ? (
-              <>
-                <ActivityIndicator size="large" color="#16a34a" />
-                <Text className="text-gray-800 font-bold text-lg">Creating listing...</Text>
-                <Text className="text-gray-400 text-sm">Please wait a moment</Text>
-              </>
-            ) : (
-              <>
-                <FontAwesome5 name="check" size={24} color="#16a34a"/>
-                <Text className="text-xl font-bold text-center text-gray-800">Listing created!</Text>
-                <Text className="text-gray-500 text-center text-sm">What do you want to do next?</Text>
-
-                <Pressable
-                  className="bg-green-600 w-full py-4 rounded-xl items-center mt-2"
-                  onPress={() => { resetForm(); router.push(`/listing/${newListingId}`); }}
-                >
-                  <Text className="text-white font-bold text-base">See my listing</Text>
-                </Pressable>
-
-                <Pressable
-                  className="w-full py-3 items-center"
-                  onPress={() => { resetForm(); router.replace('/(tabs)'); }}
-                >
-                  <Text className="text-green-600 font-semibold text-base">Go to home screen</Text>
-                </Pressable>
-              </>
-            )}
-
-          </View>
-        </View>
-      </Modal>
     </>
   )
 }

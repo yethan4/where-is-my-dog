@@ -20,7 +20,7 @@ export interface ListingLocation {
   location_type: 'exact' | 'approximate';
   is_primary: boolean;
   notes: string | null;
-  accuracy_meters: number | null;
+  accuracy_meters: number;
   created_at: string;
 }
 
@@ -63,20 +63,3 @@ export interface ListingItem {
   updated_at: string;
 }
 
-export interface ListingCreate {
-  type: ListingType;
-  title: string;
-  description: string;
-  breed?: string;
-  size?: 'small' | 'medium' | 'large';
-  color?: string;
-  gender?: 'male' | 'female' | 'unknown';
-  has_collar?: boolean;
-  collar_color?: string;
-  dog_name?: string;
-  age_estimate?: string;
-  special_marks?: string;
-  fostering_address?: string;
-  reward_offered?: string;
-  search_radius_km?: number;
-}

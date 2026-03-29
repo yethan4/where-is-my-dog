@@ -1,0 +1,152 @@
+import { View, Text, Pressable, Switch, TextInput, Keyboard, Image, ScrollView, ActivityIndicator, Modal } from 'react-native'
+import React, { useState } from 'react'
+import { Ionicons, FontAwesome5, MaterialCommunityIcons } from "@expo/vector-icons"
+import ListingCard from "../ListingCard"
+import { ListingCreate, LocationState, PhotoManage } from "@/types/listingForm"
+import MapView, { Circle, Marker } from "react-native-maps"
+import { useAuth } from "@/contexts/AuthContext"
+import axios from 'axios';
+import { useRouter } from "expo-router"
+import FinalStep from "./FinalStep"
+
+type Props = {
+  listingData: ListingCreate;
+  photos: PhotoManage[];
+  location: LocationState;
+  resetForm: () => void;
+  confirmedReward: string;
+  setConfirmedReward: (reward: string) => void;
+}
+
+const CreateFinalStep = ({listingData, photos, location, resetForm, confirmedReward, setConfirmedReward}: Props) => {
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string>('');
+  const [success, setSuccess] = useState<boolean>(false);
+  const [newListingId, setNewListingId] = useState<number | null>(null);
+
+  const { authState } = useAuth();
+  const router = useRouter();
+
+  const API_URL = process.env.EXPO_PUBLIC_API_URL;
+
+  const handleCreateListing = async () => {
+    setError('');
+    try {
+      setLoading(true);
+
+      const listingPayload = {
+        ...listingData,
+        reward_offered: !!confirmedReward ? confirmedReward : ''
+      }
+
+      const locationPayload = {
+        point: {
+          type: 'Point',
+          coordinates: [
+            location.coords!.longitude,
+            location.coords!.latitude
+          ]
+        },
+        address: location.address,
+        location_type: 'approximate',
+        is_primary: true,
+        notes: '',
+        accuracy_meters: location.radius
+      }
+
+      const resultListing = await axios.post(`${API_URL}/api/listings/`, listingPayload,
+        {
+          headers: { Authorization: `Bearer ${authState.token}`}
+        })
+
+      const listingId = resultListing.data.id;
+      setNewListingId(listingId);
+
+      await axios.post(`${API_URL}/api/listings/${listingId}/location/`, locationPayload, {
+        headers: { Authorization: `Bearer ${authState.token}`}
+      })
+
+      for (let i=0; i<photos.length; i++) {
+        const uri = photos[i].uri;
+        const filename = uri?.split('/').pop() ?? 'photo.jpg'
+        const match = /\.(\w+)/.exec(filename)
+        const type = match ? `image/${match[1]}` : 'image/jpeg'
+        const formData = new FormData();
+
+        formData.append('photo', {uri, name:filename, type} as any);
+        formData.append('order_index', String(i))
+
+        await axios.post(`${API_URL}/api/listings/${listingId}/upload_photo/`, formData,
+          {
+            headers: {
+              Authorization: `Bearer ${authState?.token}`,
+              'Content-Type': 'multipart/form-data',
+            }
+          }
+        )
+      }
+
+      setSuccess(true);
+    } catch (e) {
+      console.log(e);
+      setError('Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <>
+      <FinalStep 
+        type="create"
+        listingData={listingData}
+        photos={photos}
+        location={location}
+        resetForm={resetForm}
+        onSaveListing={handleCreateListing}
+        loading={loading}
+        error={error}
+        confirmedReward={confirmedReward}
+        setConfirmedReward={setConfirmedReward}
+    />
+
+      <Modal visible={loading || success} transparent animationType="fade">
+        <View className="flex-1 justify-center items-center bg-black/50 px-6">
+          <View className="bg-white w-full rounded-2xl p-6 items-center gap-3">
+
+            {loading ? (
+              <>
+                <ActivityIndicator size="large" color="#16a34a" />
+                <Text className="text-gray-800 font-bold text-lg">Creating listing...</Text>
+                <Text className="text-gray-400 text-sm">Please wait a moment</Text>
+              </>
+            ) : (
+              <>
+                <FontAwesome5 name="check" size={24} color="#16a34a"/>
+                <Text className="text-xl font-bold text-center text-gray-800">Listing created!</Text>
+                <Text className="text-gray-500 text-center text-sm">What do you want to do next?</Text>
+
+                <Pressable
+                  className="bg-green-600 w-full py-4 rounded-xl items-center mt-2"
+                  onPress={() => { resetForm(); router.push(`/listing/${newListingId}`); }}
+                >
+                  <Text className="text-white font-bold text-base">See my listing</Text>
+                </Pressable>
+
+                <Pressable
+                  className="w-full py-3 items-center"
+                  onPress={() => { resetForm(); router.replace('/(tabs)'); }}
+                >
+                  <Text className="text-green-600 font-semibold text-base">Go to home screen</Text>
+                </Pressable>
+              </>
+            )}
+
+          </View>
+        </View>
+      </Modal>
+    </>
+  )
+}
+
+export default CreateFinalStep

@@ -6,10 +6,10 @@ import * as Location from 'expo-location';
 import MapView, { Marker, Circle } from 'react-native-maps';
 
 import Slider from '@react-native-community/slider'
-import { LocationState } from "@/app/(tabs)/create";
+import { LocationState } from "@/types/listingForm";
 
 type Props = {
-  location: LocationState
+  location: LocationState;
   setLocation: (location: LocationState) => void;
   listingType: 'lost' | 'found';
   setCanContinue: (flag: boolean) => void;
@@ -42,7 +42,6 @@ const LocationStep = ({location, setLocation, listingType, setCanContinue}: Prop
     }
 
     const loc = await Location.getCurrentPositionAsync({});
-    console.log(loc.coords);
     const newCoords = { latitude: loc.coords.latitude, longitude: loc.coords.longitude };
 
     mapRef.current?.animateToRegion({

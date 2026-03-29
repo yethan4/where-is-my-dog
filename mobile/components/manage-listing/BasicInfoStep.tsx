@@ -1,7 +1,8 @@
 import { View, Text, ScrollView, Pressable, TextInput } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { FontAwesome5, FontAwesome6 } from "@expo/vector-icons"
-import { ListingCreate, ListingType } from "@/types/listing";
+import {  ListingType } from "@/types/listing";
+import { ListingCreate } from "@/types/listingForm";
 
 type Props = {
   onChange: (data: Partial<ListingCreate>) => void;
