@@ -49,6 +49,11 @@ def add_location_url(listing_id):
     return reverse('listing-add-location', args=[listing_id])
 
 
+def delete_location_url(listing_id, location_id):
+    """Generate URL for delete_location action"""
+    return reverse('listing-delete-location', args=[listing_id, location_id])
+
+
 USERNAME = 'janek123'
 EMAIL = 'test@example.com'
 PASSWORD = 'testpass123'
@@ -349,6 +354,45 @@ class LocationTests(APITestCase):
             id=new_location.id
         ).first()
         self.assertFalse(old_location.is_primary)
+
+    def test_delete_location_as_listing_owner_success(self):
+        """Test that listing owner can delete a location"""
+        location = self.listing.locations.first()
+        url = delete_location_url(self.listing.id, location.id)
+
+        res = self.client.delete(url)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertFalse(Location.objects.filter(id=location.id).exists())
+
+    def test_delete_location_as_location_adder_success(self):
+        """Test that user who added the location can delete it"""
+        other_user = create_user(username='other', email='other@example.com')
+        location = Location.objects.create(
+            listing=self.listing,
+            point=Point(22.5700, 51.2500),
+            added_by_user=other_user,
+            is_primary=False
+        )
+
+        self.client.force_authenticate(user=other_user)
+        url = delete_location_url(self.listing.id, location.id)
+        res = self.client.delete(url)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertFalse(Location.objects.filter(id=location.id).exists())
+
+    def test_delete_location_unauthorized_user_fails(self):
+        """Test that random user cannot delete a location"""
+        other_user = create_user(username='other', email='other@example.com')
+        self.client.force_authenticate(user=other_user)
+
+        location = self.listing.locations.first()
+        url = delete_location_url(self.listing.id, location.id)
+        res = self.client.delete(url)
+
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertTrue(Location.objects.filter(id=location.id).exists())
 
 
 class DuplicateDetectionTests(APITestCase):

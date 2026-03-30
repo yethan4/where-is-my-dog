@@ -1,3 +1,4 @@
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import viewsets, filters, status
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
@@ -19,7 +20,7 @@ from django.contrib.gis.measure import D
 import cloudinary.uploader
 
 
-from ..models import Listing, Photo
+from ..models import Listing, Location, Photo
 from ..serializers import (
     ListingSerializer,
     PhotoSerializer,
@@ -444,6 +445,82 @@ class ListingViewSet(viewsets.ModelViewSet):
         return Response(
             LocationSerializer(location).data,
             status=status.HTTP_201_CREATED
+        )
+
+    @extend_schema(
+        summary="Delete location from listing",
+        description=(
+            "Delete a specific location from this listing. "
+            "Only the listing owner or the user who added the location can delete it." # noqa
+        ),
+        responses={
+            200: OpenApiResponse(
+                description="Location deleted successfully",
+                examples=[
+                    OpenApiExample(
+                        'Success',
+                        value={
+                            'id': 3,
+                            'message': 'Location deleted successfully',
+                            'deleted_at': '2025-12-20T22:30:00Z'
+                        }
+                    )
+                ]
+            ),
+            403: OpenApiResponse(
+                description="Not the owner of this listing or location",
+                examples=[
+                    OpenApiExample(
+                        'Forbidden',
+                        value={'detail': 'You do not have permission to perform this action.'} # noqa
+                    )
+                ]
+            ),
+            404: OpenApiResponse(
+                description="Location not found in this listing",
+                examples=[
+                    OpenApiExample(
+                        'Not Found',
+                        value={'error': 'Location not found in this listing'}
+                    )
+                ]
+            ),
+        }
+    )
+    @action(
+        detail=True,
+        methods=['delete'],
+        url_path='locations/(?P<location_id>[^/.]+)'
+    )
+    def delete_location(self, request, pk=None, location_id=None):
+        """
+        Delete a specific location from this listing.
+        Only the listing owner or the user who added
+        the location can delete it.
+        """
+        listing = get_object_or_404(Listing, pk=pk)
+        location = get_object_or_404(Location, id=location_id, listing=listing)
+
+        if request.user not in (listing.user, location.added_by_user):
+            return Response(
+                {
+                    "detail": (
+                        "You do not have permission to perform this action."
+                    )
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        location_id_deleted = location.id
+        location.delete()
+
+        return Response(
+            {
+                'id': location_id_deleted,
+                'message': 'Location deleted successfully',
+                'deleted_at': timezone.now()
+            },
+            status=status.HTTP_200_OK
         )
 
     @extend_schema(
