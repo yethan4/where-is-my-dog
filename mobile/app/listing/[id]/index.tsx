@@ -1,9 +1,8 @@
 import { Image, Pressable, ScrollView, Text, View, Alert, Modal, ActivityIndicator } from 'react-native'
-import React, { useEffect, useState } from 'react'
-import { Stack, useLocalSearchParams, useRouter } from "expo-router"
+import React, { useCallback, useEffect, useState } from 'react'
+import { Stack, useFocusEffect, useLocalSearchParams, useRouter } from "expo-router"
 import axios from "axios";
 import { FontAwesome5, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { ListingItem } from "@/types/listing";
 import { useAuth } from "@/contexts/AuthContext";
 import { useListing } from "@/contexts/ListingContext";
 
@@ -16,7 +15,11 @@ const Details = () => {
   const [deleteError, setDeleteError] = useState<string>('');
 
 	const { authState } = useAuth();
-  const { listing: listingData, loading } = useListing()
+  const { listing: listingData, refetch } = useListing()
+
+  useFocusEffect(useCallback(() => {
+    refetch();
+  }, []))
 	const router = useRouter();
 
 	const API_URL = process.env.EXPO_PUBLIC_API_URL;

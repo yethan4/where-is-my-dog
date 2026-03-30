@@ -1,9 +1,7 @@
-import { View, Text, Pressable, Switch, TextInput, Keyboard, Image, ScrollView, ActivityIndicator, Modal } from 'react-native'
+import { View, Text, Pressable, ActivityIndicator, Modal } from 'react-native'
 import React, { useState } from 'react'
-import { Ionicons, FontAwesome5, MaterialCommunityIcons } from "@expo/vector-icons"
-import ListingCard from "../ListingCard"
+import { FontAwesome5 } from "@expo/vector-icons"
 import { ListingCreate, LocationState, PhotoManage } from "@/types/listingForm"
-import MapView, { Circle, Marker } from "react-native-maps"
 import { useAuth } from "@/contexts/AuthContext"
 import axios from 'axios';
 import { useRouter } from "expo-router"

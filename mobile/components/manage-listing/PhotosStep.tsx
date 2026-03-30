@@ -112,10 +112,10 @@ const PhotosStep = ({photos, setPhotos, toDeletePhotos, setToDeletePhotos}: Prop
         {!!photos[1] ? (
           <View className="w-44 h-44 bg-gray-100 rounded-xl items-center justify-center border border-dashed border-gray-400">
             <Image
-              source={{ uri: photos[0].uri || photos[0].cloudinary_url }}
+              source={{ uri: photos[1].uri || photos[1].cloudinary_url }}
               className="w-full h-full rounded-xl"
             />
-            <Pressable 
+            <Pressable
               onPress={() => handleRemovePhoto(1)}
               className="absolute -top-2 -right-2 bg-red-500 rounded-full p-1 shadow-md"
             >

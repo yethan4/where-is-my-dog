@@ -24,16 +24,6 @@ const LocationStep = ({location, setLocation, listingType, setCanContinue}: Prop
     setCanContinue(coords !== null);
   }, [coords]);
 
-  useEffect(() => {
-    if (!coords) return;
-    mapRef.current?.animateToRegion({
-      latitude: coords.latitude,
-      longitude: coords.longitude,
-      latitudeDelta: 0.01,
-      longitudeDelta: 0.01,
-    }, 800);
-  }, []);
-
   const getCurrentLocationAsync = async () => {
     let { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== 'granted') {
@@ -107,8 +97,8 @@ const LocationStep = ({location, setLocation, listingType, setCanContinue}: Prop
             ref={mapRef}
             style={{ height: 300, borderRadius: 12, marginBottom: 10 }}
             initialRegion={{
-              latitude: 51.2465,
-              longitude: 22.5684,
+              latitude: coords?.latitude ?? 51.2465,
+              longitude: coords?.longitude ?? 22.5684,
               latitudeDelta: 0.01,
               longitudeDelta: 0.01,
             }}

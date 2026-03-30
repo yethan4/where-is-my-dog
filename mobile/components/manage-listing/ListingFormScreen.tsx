@@ -8,6 +8,7 @@ import PhotosStep from "@/components/manage-listing/PhotosStep";
 import { ListingCreate, ListingFormScreenProps, LocationState, PhotoManage } from "@/types/listingForm";
 import CreateFinalStep from "./CreateFinalStep";
 import EditFinalStep from "./EditFinalStep";
+import { ListingItem } from "@/types/listing";
 
 type StepCardProps = {
   listingId: string;
@@ -25,9 +26,10 @@ type StepCardProps = {
   mode: 'create' | 'edit';
   toDeletePhotos: PhotoManage[];
   setToDeletedPhotos: (photos: PhotoManage[]) => void;
+  initialListing?: ListingItem;
 };
 
-const StepCard = ({ listingId, step, listingState, handleChange, setPhotos, photos, location, setLocation, setCanContinue, resetForm, confirmedReward, setConfirmedReward, mode, toDeletePhotos, setToDeletedPhotos }: StepCardProps) => {
+const StepCard = ({ listingId, step, listingState, handleChange, setPhotos, photos, location, setLocation, setCanContinue, resetForm, confirmedReward, setConfirmedReward, mode, toDeletePhotos, setToDeletedPhotos, initialListing }: StepCardProps) => {
   switch(step){
     case 1:
       return <BasicInfoStep onChange={handleChange} initialData={listingState} setCanContinue={setCanContinue} />
@@ -41,7 +43,7 @@ const StepCard = ({ listingId, step, listingState, handleChange, setPhotos, phot
       if (mode=='create') {
         return <CreateFinalStep listingData={listingState} photos={photos} location={location} resetForm={resetForm} confirmedReward={confirmedReward} setConfirmedReward={setConfirmedReward} />
       } else {
-        return <EditFinalStep listingData={listingState} photos={photos} location={location} resetForm={resetForm} confirmedReward={confirmedReward} setConfirmedReward={setConfirmedReward} />
+        return <EditFinalStep listingData={listingState} photos={photos} location={location} resetForm={resetForm} confirmedReward={confirmedReward} setConfirmedReward={setConfirmedReward} listingId={listingId} initialListing={initialListing!} toDeletePhotos={toDeletePhotos} />
       }
     default:
       return null;
@@ -216,6 +218,7 @@ const ListingFormScreen = ({id, mode, initialListing}: ListingFormScreenProps) =
           mode={mode}
           setToDeletedPhotos={setToDeletePhotos}
           toDeletePhotos={toDeletePhotos}
+          initialListing={initialListing}
         />)}
       </View>
 
