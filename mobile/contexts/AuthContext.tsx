@@ -49,7 +49,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [authState, setAuthState] = useState<AuthState>({
         token: null,
         user: null,
-        isLoading: false,
+        isLoading: true,
         isAuthenticated: false,
     });
 
@@ -72,7 +72,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 } catch (e) {
                     await SecureStore.deleteItemAsync('access_token');
                     await SecureStore.deleteItemAsync('refresh_token');
+                    delete axios.defaults.headers.common['Authorization'];
+                    setAuthState({ token: null, user: null, isLoading: false, isAuthenticated: false });
                 }
+            } else {
+                setAuthState(prev => ({ ...prev, isLoading: false }));
             }
         }
         loadToken();
