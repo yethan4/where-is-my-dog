@@ -10,4 +10,4 @@ class ListingFilter(django_filters.FilterSet):
 
     class Meta:
         model = Listing
-        fields = ['type', 'status', 'breed', 'size', 'color', 'gender']
+        fields = ['type', 'status', 'breed', 'size', 'color', 'gender', 'user']
