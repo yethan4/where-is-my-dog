@@ -88,7 +88,13 @@ Full documentation is available in the [docs/](docs/) folder.
 
 ---
 
-## 4. Author
+## 4. License
+
+This project is licensed under [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/) — free for non-commercial use, learning, and viewing. Commercial use is not permitted.
+
+---
+
+## 5. Author
 
 **Sebastian**
 - GitHub: [@yethan](https://github.com/yethan4)
