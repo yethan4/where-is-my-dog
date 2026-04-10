@@ -34,6 +34,7 @@ const ProfileScreen = ({ user, onLogout, onSettings }: ProfileScreenProps) => {
   const [listings, setListings] = useState<ListingCardItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'lost' | 'found' | 'history'>('lost');
+  const [activeHistoryTab, setActiveHistoryTab] = useState<'came_home' | 'returned' | 'expired'>('came_home');
 
   useFocusEffect(useCallback(() => {
     const fetchUserListings = async () => {
@@ -53,7 +54,10 @@ const ProfileScreen = ({ user, onLogout, onSettings }: ProfileScreenProps) => {
 
   const activeLost = listings.filter(l => l.status === 'active' && l.type === 'lost');
   const activeFound = listings.filter(l => l.status === 'active' && l.type === 'found');
-  const history = listings.filter(l => l.status !== 'active');
+  const historyCameHome = listings.filter(l => l.status === 'found');
+  const historyReturned = listings.filter(l => l.status === 'returned');
+  const historyExpired = listings.filter(l => l.status === 'expired');
+  const history = [...historyCameHome, ...historyReturned, ...historyExpired];
 
   const tabs = [
     { id: 'lost', label: 'Lost', count: activeLost.length },
@@ -129,8 +133,8 @@ const ProfileScreen = ({ user, onLogout, onSettings }: ProfileScreenProps) => {
         <View className="px-4 mt-4">
           {loading ? (
             <ActivityIndicator className="mt-12" color="#111827" />
-          ) : (() => {
-            const currentItems = activeTab === 'lost' ? activeLost : activeTab === 'found' ? activeFound : history;
+          ) : activeTab !== 'history' ? (() => {
+            const currentItems = activeTab === 'lost' ? activeLost : activeFound;
             return currentItems.length === 0 ? (
               <View className="items-center py-20">
                 <Text className="text-gray-400 font-medium">No listings here yet</Text>
@@ -147,7 +151,54 @@ const ProfileScreen = ({ user, onLogout, onSettings }: ProfileScreenProps) => {
                 </React.Fragment>
               );
             });
-          })()}
+          })() : (
+            <>
+              <View className="flex-row gap-4 mb-4 border-b border-gray-100 pb-3">
+                {([
+                  { id: 'came_home', label: 'My dog came home', count: historyCameHome.length },
+                  { id: 'returned', label: 'Returned to owner', count: historyReturned.length },
+                  { id: 'expired', label: 'Expired', count: historyExpired.length },
+                ] as const).map(tab => (
+                  <Pressable
+                    key={tab.id}
+                    onPress={() => setActiveHistoryTab(tab.id)}
+                    className={`pb-2 relative ${activeHistoryTab === tab.id ? '' : 'opacity-40'}`}
+                  >
+                    <View className="flex-row items-center">
+                      <Text className={`text-sm font-bold ${activeHistoryTab === tab.id ? 'text-gray-900' : 'text-gray-500'}`}>
+                        {tab.label}
+                      </Text>
+                      {tab.count > 0 && (
+                        <Text className="ml-1 text-xs text-gray-400">({tab.count})</Text>
+                      )}
+                    </View>
+                    {activeHistoryTab === tab.id && (
+                      <View className="absolute bottom-0 left-0 right-0 h-[2px] bg-gray-900 rounded-full" />
+                    )}
+                  </Pressable>
+                ))}
+              </View>
+              {(() => {
+                const items = activeHistoryTab === 'came_home' ? historyCameHome : activeHistoryTab === 'returned' ? historyReturned : historyExpired;
+                return items.length === 0 ? (
+                  <View className="items-center py-20">
+                    <Text className="text-gray-400 font-medium">No listings here yet</Text>
+                  </View>
+                ) : items.map((item, index) => {
+                  const label = formatDateLabel(item.created_at);
+                  const showSeparator = index === 0 || label !== formatDateLabel(items[index - 1].created_at);
+                  return (
+                    <React.Fragment key={item.id}>
+                      {showSeparator && (
+                        <Text className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 mt-2">{label}</Text>
+                      )}
+                      <ListingCard item={item} isPreview={false} />
+                    </React.Fragment>
+                  );
+                });
+              })()}
+            </>
+          )}
         </View>
 
       </ScrollView>
