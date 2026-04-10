@@ -6,7 +6,41 @@ Mobile application helping reunite lost dogs with their owners in Lublin, Poland
 
 **Where Is My Dog?** is a mobile platform connecting people who have lost their dogs with those who have found them. The app uses geolocation, intelligent matching, and notifications to maximize the chances of successful reunions.
 
-The project is focused on the **Lublin area** with plans to expand to other Polish cities.
+The project is focused on **Poland**.
+
+---
+
+> **Note:** The MVP is not yet complete. The backend is functional and below are current screenshots from the mobile interface.
+
+## Screenshots
+
+### Creating a Listing
+
+| Step 1 | Step 2 | Step 3 | Step 4 |
+|--------|--------|--------|--------|
+| ![Step 1](docs/screenshots/create-form-step1.jpeg) | ![Step 2](docs/screenshots/create-form-step2.jpeg) | ![Step 3](docs/screenshots/create-form-step3.jpeg) | ![Step 4](docs/screenshots/create-form-step4.jpeg) |
+
+| Step 5.1 | Step 5.2 | Creating... | Created |
+|----------|----------|-------------|---------|
+| ![Step 5.1](docs/screenshots/create-form-step5.1.jpeg) | ![Step 5.2](docs/screenshots/create-form-step5.2.jpeg) | ![Creating](docs/screenshots/creating.jpeg) | ![Created](docs/screenshots/created.jpeg) |
+
+### Browsing & Details
+
+| Home (Lost) | Home (Found) | Listing View |
+|-------------|--------------|--------------|
+| ![Home Lost](docs/screenshots/home-lost-view.jpeg) | ![Home Found](docs/screenshots/home-found-view.jpeg) | ![Listing](docs/screenshots/listing-view.jpeg) |
+
+### Profile
+
+| Profile |
+|---------|
+| ![Profile](docs/screenshots/profile-view.jpeg) |
+
+### API Documentation
+
+| API Docs 1 | API Docs 2 |
+|------------|------------|
+| ![API Docs 1](docs/screenshots/apidocs1.png) | ![API Docs 2](docs/screenshots/apidocs2.png) |
 
 ---
 
