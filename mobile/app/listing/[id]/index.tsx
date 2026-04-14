@@ -13,6 +13,10 @@ const Details = () => {
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const [deleteSuccess, setDeleteSuccess] = useState<boolean>(false);
   const [deleteError, setDeleteError] = useState<string>('');
+  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
+  const [markResolvedError, setMarkResolvedError] = useState<string>('');
+  const [isMarkingAsResolved, setIsMarkingAsResolved] = useState<boolean>(false);
+  const [markResolvedSuccess, setMarkResolvedSuccess] = useState<boolean>(false);
 
 	const { authState } = useAuth();
   const { listing: listingData, refetch } = useListing()
@@ -52,6 +56,35 @@ const Details = () => {
       ]
     );
   };
+
+  const handleMarkAsResolved = () => {
+    Alert.alert(
+      "Mark as resolved",
+      "Are you sure this listing is resolved? It will be moved to your history and closed.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Mark as resolved",
+          style: "default",
+          onPress: async() => {
+            setMarkResolvedError('');
+            try{
+              setIsMarkingAsResolved(true);
+              await axios.post(`${API_URL}/api/listings/${id}/mark_found/`, {
+                headers: {Authorization: `Bearer ${authState.token}` },
+              });
+              setMarkResolvedSuccess(true);
+            } catch (e) {
+              console.log(e);
+              setMarkResolvedError('Something went wrong. Please try again.');
+            } finally {
+              setIsMarkingAsResolved(false);
+            }
+          },
+        },
+      ]
+    )
+  }
 
 	useEffect(() => {
 		setIsAuthor(authState?.user?.id == listingData?.user?.id)
@@ -247,25 +280,48 @@ const Details = () => {
 			</Pressable>
 			)}
 
-			{isAuthor && (
-				<View className="absolute bottom-10 left-6 right-6 flex-row justify-between gap-3">
+      {isAuthor && (
+				<View className="absolute bottom-10 left-6 right-6 flex justify-between gap-3">
+          {!!isMenuOpen &&
+            <View className="bg-white rounded-2xl shadow-lg border border-gray-100 mb-3 overflow-hidden">
+              <Pressable
+                onPress={handleDelete}
+                className="flex-row items-center gap-3 px-5 py-4 active:bg-red-50"
+              >
+                <Ionicons name="trash-outline" size={20} color="#ef4444" />
+								<Text className="text-red-800 text-base font-semibold">Delete</Text>
+              </Pressable>
+              {listingData?.status === 'active' && (
+                <Pressable
+                  onPress={() => router.push(`/listing/${id}/edit`)}
+                  className="flex-row items-center gap-3 px-5 py-4 active:bg-gray-50"
+                >
+                  <Ionicons name="pencil-sharp" size={20} color="#1e293b" />
+                  <Text className="text-slate-800 text-base font-semibold">Edit</Text>
+                </Pressable>
+              )}
+              {listingData?.status === 'active' && (
+                <Pressable
+                  onPress={handleMarkAsResolved}
+                  className="flex-row items-center gap-3 px-5 py-4 active:bg-green-50"
+                >
+                  <Ionicons name="checkmark-circle-outline" size={20} color="#16a34a" />
+                  <Text className="text-green-700 text-base font-semibold">Mark as resolved</Text>
+                </Pressable>
+              )}
+            </View> 
+          }
 					<Pressable
-            onPress={() => router.push(`/listing/${id}/edit`)}
+            onPress={() => setIsMenuOpen(!isMenuOpen)}
             className="bg-slate-800 flex-1 py-4 rounded-2xl flex-row items-center justify-center gap-2 shadow-sm active:opacity-80"
           >
-						<Ionicons name="pencil-sharp" size={18} color="white" />
-						<Text className="text-white text-lg font-semibold">Edit</Text>
-					</Pressable>
-					<Pressable
-            className="bg-red-50 border border-red-200 px-6 py-4 rounded-2xl items-center justify-center active:bg-red-100"
-            onPress={handleDelete}
-          >
-						<Ionicons name="trash-outline" size={20} color="#ef4444" />
+            {!!isMenuOpen && <Ionicons name="chevron-down-outline" color="#FFFFFF" size={18} />}
+						<Text className="text-white text-lg font-semibold">Manage Listing</Text>
 					</Pressable>
 				</View>
 			)}
 
-			<Modal visible={isDeleting || deleteSuccess} transparent animationType="fade">
+			<Modal visible={isDeleting || deleteSuccess || isMarkingAsResolved || markResolvedSuccess} transparent animationType="fade">
 				<View className="flex-1 justify-center items-center bg-black/50 px-6">
 					<View className="bg-white w-full rounded-2xl p-6 items-center gap-3">
 
@@ -274,6 +330,27 @@ const Details = () => {
 								<ActivityIndicator size="large" color="#ef4444" />
 								<Text className="text-gray-800 font-bold text-lg">Deleting listing...</Text>
 								<Text className="text-gray-400 text-sm">Please wait a moment</Text>
+							</>
+						) : isMarkingAsResolved ? (
+							<>
+								<ActivityIndicator size="large" color="#16a34a" />
+								<Text className="text-gray-800 font-bold text-lg">Marking as resolved...</Text>
+								<Text className="text-gray-400 text-sm">Please wait a moment</Text>
+							</>
+						) : markResolvedSuccess ? (
+							<>
+								<FontAwesome5 name="check" size={24} color="#16a34a" />
+								{!!markResolvedError ? (
+									<Text className="text-red-500 text-sm font-medium text-center">{markResolvedError}</Text>
+								) : (
+									<Text className="text-xl font-bold text-center text-gray-800">Listing resolved!</Text>
+								)}
+								<Pressable
+									className="bg-slate-800 w-full py-4 rounded-xl items-center mt-2"
+									onPress={() => router.replace('/(tabs)')}
+								>
+									<Text className="text-white font-bold text-base">Go to home screen</Text>
+								</Pressable>
 							</>
 						) : (
 							<>
@@ -296,6 +373,7 @@ const Details = () => {
 					</View>
 				</View>
 			</Modal>
+      
 		</View>
 	)
 }
