@@ -223,22 +223,24 @@ const Details = () => {
 					<View className="mb-7">
 						<Text className="text-lg font-semibold mb-2">Last Location</Text>
 						<View className="flex gap-2">
-							<View
-								className="flex-row items-center px-4 py-2 rounded-lg bg-gray-50 border border-gray-100 "
-							>
-								<Ionicons name="location" size={24} color="#EF4444" />
+              <Pressable
+                onPress={() => router.push(`/listing/${id}/map`)}
+              >
+                <View
+                  className="flex-row items-center px-4 py-2 rounded-lg bg-gray-50 border border-gray-100 "
+                >
+                  <Ionicons name="location" size={24} color="#EF4444" />
 
-									<View className="flex-col ml-6">
-										<Text className="font-semibold tracking-wider">{listingData?.primary_location?.address}</Text>
-										<View className="flex-row gap-2">
-											<Text className="tracking-wide">{listingData?.primary_location?.latitude && `Lat: ${parseFloat(listingData?.primary_location?.latitude).toFixed(4)},`}</Text>
-											<Text className="tracking-wide">{listingData?.primary_location?.longitude && `Long: ${parseFloat(listingData?.primary_location?.longitude).toFixed(4)}`}</Text>
-										</View>
-										<Pressable className="">
-											<Text className="text-xs tracking-wide text-gray-600 mt-1">Click to view on the map</Text>
-										</Pressable>
-									</View>
-							</View>
+                    <View className="flex-col ml-6">
+                      <Text className="font-semibold tracking-wider">{listingData?.primary_location?.address}</Text>
+                      <View className="flex-row gap-2">
+                        <Text className="tracking-wide">{listingData?.primary_location?.latitude && `Lat: ${parseFloat(listingData?.primary_location?.latitude).toFixed(4)},`}</Text>
+                        <Text className="tracking-wide">{listingData?.primary_location?.longitude && `Long: ${parseFloat(listingData?.primary_location?.longitude).toFixed(4)}`}</Text>
+                      </View>
+                      <Text className="text-xs tracking-wide text-gray-600 mt-1">Click to view on the map</Text>
+                    </View>
+                </View>
+              </Pressable>
 						</View>
 					</View>
 
