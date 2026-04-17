@@ -1,5 +1,5 @@
 import { View, Text, Pressable, FlatList, Modal, ScrollView} from 'react-native'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Ionicons } from '@expo/vector-icons';
 import ListingCard, { ListingCardItem } from "@/components/ListingCard";
 import axios from "axios";
@@ -8,6 +8,7 @@ import BreedPicker from "@/components/BreedPicker";
 
 interface ListingsResponse {
   results: ListingCardItem[];
+  count: number;
 }
 
 interface Filters {
@@ -33,8 +34,14 @@ const index = () => {
   const [showFilters, setShowFilters] = useState<boolean>(false);
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
   const [draftFilters, setDraftFilters] = useState<Filters>(DEFAULT_FILTERS);
+  const [pages, setPages] = useState<{lost: number, found: number}>({ lost: 1, found: 1});
+  const [totalCount, setTotalCount] = useState(0);
+  const PAGE_SIZE = 5;
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   const filterCount = filters.color.length + filters.gender.length + filters.size.length + filters.breed.length;
+
+  const listRef = useRef<FlatList>(null);
 
   const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -79,9 +86,11 @@ const index = () => {
           ...(filters.size.length > 0 && { size: filters.size.join(',') }),
           ...(filters.gender.length > 0 && { gender: filters.gender.join(',') }),
           ...(filters.color.length > 0 && { color: filters.color.join(',') }),
+          page: listingType === 'found' ? pages.found : pages.lost
         }
       });
       setListings(response.data.results);
+      setTotalCount(response.data.count);
     } catch (error) {
       console.error('Failed to fetch listings:', error);
     } finally {
@@ -91,7 +100,7 @@ const index = () => {
 
   useEffect(() => {
     fetchListings();
-  }, [listingType, filters]);
+  }, [listingType, filters, pages]);
 
 
   return (
@@ -151,13 +160,49 @@ const index = () => {
       
       {/* listings */}
       <FlatList
+        ref={listRef}
         data={listings}
         keyExtractor={item => item.id.toString()}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 150 }}
         renderItem={({item}) => (
-          <ListingCard item={item} />
+          <ListingCard item={item} isPreview={false} />
         )}
+        ListFooterComponent={() => {
+          const currentPage = listingType === 'lost' ? pages.lost : pages.found;
+          const isFirst = currentPage === 1;
+          const isLast = currentPage >= totalPages;
+          const setPage = (p: number) =>{
+            setPages(prev => ({ ...prev, [listingType]: p }));
+            listRef.current?.scrollToOffset({ offset: 0})
+          }
+          return (
+            <View className="flex-row justify-between items-center mx-4 py-4">
+              <Pressable
+                onPress={() => !isFirst && setPage(currentPage - 1)}
+                disabled={isFirst}
+                className={`flex-row items-center gap-2 px-5 py-3 rounded-2xl border-2 ${isFirst ? 'border-gray-100 bg-gray-50' : 'border-blue-600 bg-white'}`}
+              >
+                <Ionicons name="chevron-back" size={18} color={isFirst ? '#d1d5db' : '#2563EB'} />
+                <Text className={`font-semibold text-base ${isFirst ? 'text-gray-300' : 'text-blue-600'}`}>Prev</Text>
+              </Pressable>
+
+              <View className="items-center">
+                <Text className="font-bold text-base text-gray-800">{currentPage} / {totalPages}</Text>
+                <Text className="text-xs text-gray-400 mt-0.5">{totalCount} listings</Text>
+              </View>
+
+              <Pressable
+                onPress={() => !isLast && setPage(currentPage + 1)}
+                disabled={isLast}
+                className={`flex-row items-center gap-2 px-5 py-3 rounded-2xl border-2 ${isLast ? 'border-gray-100 bg-gray-50' : 'border-blue-600 bg-blue-600'}`}
+              >
+                <Text className={`font-semibold text-base ${isLast ? 'text-gray-300' : 'text-white'}`}>Next</Text>
+                <Ionicons name="chevron-forward" size={18} color={isLast ? '#d1d5db' : '#fff'} />
+              </Pressable>
+            </View>
+          );
+        }}
       />
 
       <Modal
