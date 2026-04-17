@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, ActivityIndicator, Pressable } from "react-native";
+import { View, Text, ScrollView, ActivityIndicator, Pressable, RefreshControl } from "react-native";
 import React, { useCallback, useState } from 'react';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from "@expo/vector-icons";
@@ -35,22 +35,8 @@ const ProfileScreen = ({ user, onLogout, onSettings }: ProfileScreenProps) => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'lost' | 'found' | 'history'>('lost');
   const [activeHistoryTab, setActiveHistoryTab] = useState<'came_home' | 'returned' | 'expired'>('came_home');
+  const [refreshing, setRefreshing] = useState<boolean>(false);
 
-  useFocusEffect(useCallback(() => {
-    const fetchUserListings = async () => {
-      try {
-        const response = await axios.get(`${API_URL}/api/listings/`, {
-          params: { user: user.id }
-        });
-        setListings(response.data.results);
-      } catch (error) {
-        console.error('Failed to fetch user listings:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchUserListings();
-  }, [user.id]));
 
   const activeLost = listings.filter(l => l.status === 'active' && l.type === 'lost');
   const activeFound = listings.filter(l => l.status === 'active' && l.type === 'found');
@@ -65,9 +51,32 @@ const ProfileScreen = ({ user, onLogout, onSettings }: ProfileScreenProps) => {
     { id: 'history', label: 'History', count: history.length },
   ] as const;
 
+  const fetchUserListings = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get(`${API_URL}/api/listings/`, {
+          params: { user: user.id }
+        });
+        setListings(response.data.results);
+      } catch (error) {
+        console.error('Failed to fetch user listings:', error);
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+      }
+    };
+
+  useFocusEffect(useCallback(() => {
+    fetchUserListings();
+  }, [user.id]));
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchUserListings();
+  };
+
   return (
     <View className="flex-1 bg-white">
-
       <View className="flex-row items-center justify-between px-6 pt-14 pb-4">
         <Text className="text-2xl font-black text-gray-900 tracking-tight">Profile</Text>
         <View className="flex-row gap-2">
@@ -80,7 +89,13 @@ const ProfileScreen = ({ user, onLogout, onSettings }: ProfileScreenProps) => {
         </View>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
+
+      <ScrollView 
+        showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
         <View className="px-6 py-6 flex-row items-center">
           <View className="w-20 h-20 rounded-full bg-gray-900 items-center justify-center">
             <Text className="text-3xl font-bold text-white">
@@ -200,7 +215,6 @@ const ProfileScreen = ({ user, onLogout, onSettings }: ProfileScreenProps) => {
             </>
           )}
         </View>
-
       </ScrollView>
     </View>
   );

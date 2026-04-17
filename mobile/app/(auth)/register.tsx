@@ -1,4 +1,4 @@
-import { View, Text, TextInput, Pressable, Alert } from 'react-native'
+import { View, Text, TextInput, Pressable, Alert, ActivityIndicator } from 'react-native'
 import React, { useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'expo-router'
@@ -11,6 +11,7 @@ const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [phone, setPhone] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+  const [loading, setLoading] = useState<boolean>(false);
   
   const { onRegister } = useAuth();
   const router = useRouter();
@@ -30,8 +31,9 @@ const Register = () => {
       Alert.alert('Error', 'Password must be at least 6 characters')
       return
     }
-
+    setLoading(true);
     const result = await onRegister({email, username, password, password2: confirmPassword, phone});
+    setLoading(false);
     if (result.error) {
         setErrorMsg(result.msg);
     } else {
@@ -104,9 +106,13 @@ const Register = () => {
 
       <Pressable
         onPress={handleRegister}
+        disabled={loading}
         className="bg-blue-600 py-4 rounded-lg mb-4"
       >
-        <Text className="text-white text-center font-semibold">Sign Up</Text>
+        {loading
+          ? <ActivityIndicator color="white" />
+          : <Text className="text-white text-center font-semibold">Sign Up</Text>
+        }
       </Pressable>
 
       <Pressable onPress={() => router.push('/(auth)/login')}>

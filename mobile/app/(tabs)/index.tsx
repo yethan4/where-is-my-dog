@@ -1,10 +1,11 @@
-import { View, Text, Pressable, FlatList, Modal, ScrollView} from 'react-native'
+import { View, Text, Pressable, FlatList, Modal, ScrollView, RefreshControl } from 'react-native'
 import React, { useEffect, useRef, useState } from 'react'
 import { Ionicons } from '@expo/vector-icons';
 import ListingCard, { ListingCardItem } from "@/components/ListingCard";
 import axios from "axios";
 import { COLOR_OPTIONS, GENDER_OPTIONS, SIZE_OPTIONS } from "@/constants/dogOptions";
 import BreedPicker from "@/components/BreedPicker";
+import ListingCardSkeleton from "@/components/skeletons/ListingCardSkeleton";
 
 interface ListingsResponse {
   results: ListingCardItem[];
@@ -35,7 +36,8 @@ const index = () => {
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
   const [draftFilters, setDraftFilters] = useState<Filters>(DEFAULT_FILTERS);
   const [pages, setPages] = useState<{lost: number, found: number}>({ lost: 1, found: 1});
-  const [totalCount, setTotalCount] = useState(0);
+  const [totalCount, setTotalCount] = useState<number>(0);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
   const PAGE_SIZE = 5;
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
@@ -75,6 +77,11 @@ const index = () => {
     setShowFilters(true);
   };
 
+  const onRefresh = () => {
+    setRefreshing(true);
+    setPages({ lost: 1, found: 1 });
+  };
+
   const fetchListings = async() => {
     try {
       setLoading(true);
@@ -95,6 +102,7 @@ const index = () => {
       console.error('Failed to fetch listings:', error);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }
 
@@ -158,52 +166,66 @@ const index = () => {
         </Pressable>
       </View>
       
+      
       {/* listings */}
-      <FlatList
-        ref={listRef}
-        data={listings}
-        keyExtractor={item => item.id.toString()}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 150 }}
-        renderItem={({item}) => (
-          <ListingCard item={item} isPreview={false} />
-        )}
-        ListFooterComponent={() => {
-          const currentPage = listingType === 'lost' ? pages.lost : pages.found;
-          const isFirst = currentPage === 1;
-          const isLast = currentPage >= totalPages;
-          const setPage = (p: number) =>{
-            setPages(prev => ({ ...prev, [listingType]: p }));
-            listRef.current?.scrollToOffset({ offset: 0})
+      {loading &&(
+        <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
+          <ListingCardSkeleton />
+          <ListingCardSkeleton />
+          <ListingCardSkeleton />
+        </ScrollView>
+      )}
+
+      {!loading && (
+        <FlatList
+          ref={listRef}
+          data={listings}
+          keyExtractor={item => item.id.toString()}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 150 }}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
-          return (
-            <View className="flex-row justify-between items-center mx-4 py-4">
-              <Pressable
-                onPress={() => !isFirst && setPage(currentPage - 1)}
-                disabled={isFirst}
-                className={`flex-row items-center gap-2 px-5 py-3 rounded-2xl border-2 ${isFirst ? 'border-gray-100 bg-gray-50' : 'border-blue-600 bg-white'}`}
-              >
-                <Ionicons name="chevron-back" size={18} color={isFirst ? '#d1d5db' : '#2563EB'} />
-                <Text className={`font-semibold text-base ${isFirst ? 'text-gray-300' : 'text-blue-600'}`}>Prev</Text>
-              </Pressable>
+          renderItem={({item}) => (
+            <ListingCard item={item} isPreview={false} />
+          )}
+          ListFooterComponent={() => {
+            const currentPage = listingType === 'lost' ? pages.lost : pages.found;
+            const isFirst = currentPage === 1;
+            const isLast = currentPage >= totalPages;
+            const setPage = (p: number) =>{
+              setPages(prev => ({ ...prev, [listingType]: p }));
+              listRef.current?.scrollToOffset({ offset: 0})
+            }
+            return (
+              <View className="flex-row justify-between items-center mx-4 py-4">
+                <Pressable
+                  onPress={() => !isFirst && setPage(currentPage - 1)}
+                  disabled={isFirst}
+                  className={`flex-row items-center gap-2 px-5 py-3 rounded-2xl border-2 ${isFirst ? 'border-gray-100 bg-gray-50' : 'border-blue-600 bg-white'}`}
+                >
+                  <Ionicons name="chevron-back" size={18} color={isFirst ? '#d1d5db' : '#2563EB'} />
+                  <Text className={`font-semibold text-base ${isFirst ? 'text-gray-300' : 'text-blue-600'}`}>Prev</Text>
+                </Pressable>
 
-              <View className="items-center">
-                <Text className="font-bold text-base text-gray-800">{currentPage} / {totalPages}</Text>
-                <Text className="text-xs text-gray-400 mt-0.5">{totalCount} listings</Text>
+                <View className="items-center">
+                  <Text className="font-bold text-base text-gray-800">{currentPage} / {totalPages}</Text>
+                  <Text className="text-xs text-gray-400 mt-0.5">{totalCount} listings</Text>
+                </View>
+
+                <Pressable
+                  onPress={() => !isLast && setPage(currentPage + 1)}
+                  disabled={isLast}
+                  className={`flex-row items-center gap-2 px-5 py-3 rounded-2xl border-2 ${isLast ? 'border-gray-100 bg-gray-50' : 'border-blue-600 bg-blue-600'}`}
+                >
+                  <Text className={`font-semibold text-base ${isLast ? 'text-gray-300' : 'text-white'}`}>Next</Text>
+                  <Ionicons name="chevron-forward" size={18} color={isLast ? '#d1d5db' : '#fff'} />
+                </Pressable>
               </View>
-
-              <Pressable
-                onPress={() => !isLast && setPage(currentPage + 1)}
-                disabled={isLast}
-                className={`flex-row items-center gap-2 px-5 py-3 rounded-2xl border-2 ${isLast ? 'border-gray-100 bg-gray-50' : 'border-blue-600 bg-blue-600'}`}
-              >
-                <Text className={`font-semibold text-base ${isLast ? 'text-gray-300' : 'text-white'}`}>Next</Text>
-                <Ionicons name="chevron-forward" size={18} color={isLast ? '#d1d5db' : '#fff'} />
-              </Pressable>
-            </View>
-          );
-        }}
-      />
+            );
+          }}
+        />
+      )}
 
       <Modal
         visible={showFilters}

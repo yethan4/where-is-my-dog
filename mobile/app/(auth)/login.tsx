@@ -1,4 +1,4 @@
-import { View, Text, TextInput, Pressable } from 'react-native'
+import { View, Text, TextInput, Pressable, ActivityIndicator } from 'react-native'
 import React, { useState } from 'react'
 import { useAuth } from "@/contexts/AuthContext"
 import { useRouter } from "expo-router"
@@ -8,13 +8,15 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+  const [loading, setLoading] = useState<boolean>(false);
 
   const { onLogin } = useAuth();
   const router = useRouter();
 
   const handleLogin = async () => {
+    setLoading(true);
     const result = await onLogin({email, password});
-    
+    setLoading(false);
     if(result.error) {
       setErrorMsg(result.msg)
       setPassword('');
@@ -30,7 +32,6 @@ const Login = () => {
           <Text className="text-red-700 font-bold text-center">{errorMsg}</Text>
         </View>
       )}
-
 
       <Pressable 
         onPress={() => router.back()}
@@ -62,9 +63,13 @@ const Login = () => {
 
       <Pressable
         onPress={handleLogin}
+        disabled={loading}
         className="bg-blue-600 py-4 rounded-lg mb-4"
       >
-        <Text className="text-white text-center font-semibold">Login</Text>
+        {loading
+          ? <ActivityIndicator color="white" />
+          : <Text className="text-white text-center font-semibold">Login</Text>
+        }
       </Pressable>
 
       <Pressable onPress={() => router.push('/(auth)/register')}>
