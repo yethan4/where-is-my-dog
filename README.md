@@ -12,6 +12,32 @@ The project is focused on **Poland**.
 
 > **Note:** The MVP is not yet complete. The backend is functional and below are current screenshots from the mobile interface.
 
+## What's Already Working
+
+**Mobile app**
+- Authentication (JWT login, secure token storage)
+- Browse lost/found listings — paginated, connected to API
+- Multi-select filters (breed, characteristics)
+- Listing detail view with card navigation
+- Map view with location history on listing detail
+- Multi-step create listing form (photos, location, characteristics)
+- Edit and delete own listings
+- Mark listing as resolved
+- Profile screen with user's active and closed listings
+- Loading states, skeleton loaders, pull-to-refresh
+
+**Backend**
+- REST API (Django + DRF) with JWT authentication
+- Listings CRUD with photo upload (Cloudinary)
+- PostGIS-based location support
+- Multi-select filtering
+- Automatic listing expiration (Celery)
+- Basic duplicate detection
+- Owner/permission checks on all mutating endpoints
+- Email login with API tests
+
+---
+
 ## Screenshots
 
 ### Creating a Listing
