@@ -11,7 +11,7 @@ const edit = () => {
   return (
     <View className="pt-safe flex-1">
       <View className="flex-row justify-end px-4 pt-2">
-        <Pressable onPress={() => router.back()}>
+        <Pressable onPress={() => router.back()} className="active:opacity-80">
           <Text className="text-gray-500 font-medium px-10">Cancel</Text>
         </Pressable>
       </View>

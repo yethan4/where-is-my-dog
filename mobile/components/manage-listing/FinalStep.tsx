@@ -232,7 +232,7 @@ const FinalStep = ({type, listingData, photos, location, onSaveListing, loading,
         <Pressable
           onPress={onSaveListing}
           disabled={loading}
-          className={`items-center bg-green-600 rounded-2xl py-4 ${loading ? 'opacity-60' : ''}`}
+          className={`items-center bg-green-600 rounded-2xl py-4 active:opacity-80 ${loading ? 'opacity-60' : ''}`}
         >
           <Text className="text-white font-bold text-xl">
             {type=='create' ? 'Create Listing' : 'Update Listing'}

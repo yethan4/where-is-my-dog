@@ -125,14 +125,14 @@ const CreateFinalStep = ({listingData, photos, location, resetForm, confirmedRew
                 <Text className="text-gray-500 text-center text-sm">What do you want to do next?</Text>
 
                 <Pressable
-                  className="bg-green-600 w-full py-4 rounded-xl items-center mt-2"
+                  className="bg-green-600 w-full py-4 rounded-xl items-center mt-2 active:opacity-80"
                   onPress={() => { resetForm(); router.push(`/listing/${newListingId}`); }}
                 >
                   <Text className="text-white font-bold text-base">See my listing</Text>
                 </Pressable>
 
                 <Pressable
-                  className="w-full py-3 items-center"
+                  className="w-full py-3 items-center active:opacity-80"
                   onPress={() => { resetForm(); router.replace('/(tabs)'); }}
                 >
                   <Text className="text-green-600 font-semibold text-base">Go to home screen</Text>

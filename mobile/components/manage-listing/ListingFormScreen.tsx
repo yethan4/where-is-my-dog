@@ -172,9 +172,9 @@ const ListingFormScreen = ({id, mode, initialListing}: ListingFormScreenProps) =
   return (
     <View className="px-4 flex-1">
       <View className="flex-row items-center justify-between py-6 border-b border-gray-200 mb-6">
-        <Pressable 
+        <Pressable
           onPress={() => currentStep > 1 && setCurrentStep(currentStep - 1)}
-          className={`p-2 rounded-full ${currentStep === 1 ? 'opacity-0' : 'bg-gray-50'}`}
+          className={`p-2 rounded-full active:opacity-80 ${currentStep === 1 ? 'opacity-0' : 'bg-gray-50'}`}
         >
           <FontAwesome5 name="chevron-left" size={16} color="#4b5563" />
         </Pressable>
@@ -190,8 +190,8 @@ const ListingFormScreen = ({id, mode, initialListing}: ListingFormScreenProps) =
           }
         </View>
 
-        <Pressable 
-          className={`p-2 rounded-full ${currentStep === 5 || !canContinue ? 'opacity-0' : 'bg-gray-50'}`}
+        <Pressable
+          className={`p-2 rounded-full active:opacity-80 ${currentStep === 5 || !canContinue ? 'opacity-0' : 'bg-gray-50'}`}
           onPress={() => currentStep < 5 && setCurrentStep(currentStep + 1)}
         >
           <FontAwesome5 name="chevron-right" size={16} color="#4b5563" />
@@ -222,8 +222,8 @@ const ListingFormScreen = ({id, mode, initialListing}: ListingFormScreenProps) =
         />)}
       </View>
 
-      <Pressable 
-        className={`absolute bottom-4 left-0 right-0 ${canContinue ? 'bg-slate-600' : 'bg-slate-300'} bg-slate-400 mx-6 rounded-xl py-4 flex items-center ${currentStep===5 && 'opacity-0'}`}
+      <Pressable
+        className={`absolute bottom-4 left-0 right-0 ${canContinue ? 'bg-slate-600' : 'bg-slate-300'} bg-slate-400 mx-6 rounded-xl py-4 flex items-center active:opacity-80 ${currentStep===5 && 'opacity-0'}`}
         disabled={!canContinue}
         onPress={() => (setCurrentStep(currentStep+1))}
       >

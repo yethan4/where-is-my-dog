@@ -80,7 +80,7 @@ const LocationStep = ({location, setLocation, listingType, setCanContinue}: Prop
           <Text className="mb-2 text-gray-700">Choose your dog's location.</Text>
           <Pressable
             onPress={getCurrentLocationAsync}
-            className="flex-row bg-black gap-2 justify-center items-center py-3 rounded-xl mb-4"
+            className="flex-row bg-black gap-2 justify-center items-center py-3 rounded-xl mb-4 active:opacity-80"
           >
             <Ionicons name="navigate" size={24} color="white" />
             <Text className="text-white text-lg font-semibold ">Use My Current Location</Text>

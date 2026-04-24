@@ -96,9 +96,9 @@ const PhotosStep = ({photos, setPhotos, toDeletePhotos, setToDeletePhotos}: Prop
               source={{ uri: photos[0].uri || photos[0].cloudinary_url }}
               className="w-full h-full rounded-xl"
             />
-            <Pressable 
+            <Pressable
               onPress={() => handleRemovePhoto(0)}
-              className="absolute -top-2 -right-2 bg-red-500 rounded-full p-1 shadow-md"
+              className="absolute -top-2 -right-2 bg-red-500 rounded-full p-1 shadow-md active:opacity-80"
             >
               <Ionicons name="close" size={20} color="white" />
             </Pressable>
@@ -117,7 +117,7 @@ const PhotosStep = ({photos, setPhotos, toDeletePhotos, setToDeletePhotos}: Prop
             />
             <Pressable
               onPress={() => handleRemovePhoto(1)}
-              className="absolute -top-2 -right-2 bg-red-500 rounded-full p-1 shadow-md"
+              className="absolute -top-2 -right-2 bg-red-500 rounded-full p-1 shadow-md active:opacity-80"
             >
               <Ionicons name="close" size={20} color="white" />
             </Pressable>
@@ -141,7 +141,7 @@ const PhotosStep = ({photos, setPhotos, toDeletePhotos, setToDeletePhotos}: Prop
                 />
                 <Pressable
                   onPress={() => handleRestorePhoto(photo.id!)}
-                  className="absolute inset-0 items-center justify-center bg-black/40"
+                  className="absolute inset-0 items-center justify-center bg-black/40 active:opacity-80"
                 >
                   <Ionicons name="refresh" size={24} color="white" />
                 </Pressable>
@@ -152,19 +152,19 @@ const PhotosStep = ({photos, setPhotos, toDeletePhotos, setToDeletePhotos}: Prop
       )}
 
       <View className="flex-row px-2 justify-between gap-2">
-        <Pressable 
+        <Pressable
           onPress={takePhotoAsync}
           disabled={photos.length >= 2}
-          className="w-44 flex-row bg-gray-800 py-3 rounded-xl border-2 border-gray-800 justify-center items-center"
+          className="w-44 flex-row bg-gray-800 py-3 rounded-xl border-2 border-gray-800 justify-center items-center active:opacity-80"
         >
           <Ionicons name="camera" size={24} color="white"/>
           <Text className="text-white font-semibold ml-2">Aparat</Text>
         </Pressable>
 
-        <Pressable 
+        <Pressable
           onPress={pickImageAsync}
           disabled={photos.length >= 2}
-          className="w-44 flex-row bg-white border-2 border-gray-800 py-3 rounded-xl justify-center items-center"
+          className="w-44 flex-row bg-white border-2 border-gray-800 py-3 rounded-xl justify-center items-center active:opacity-80"
         >
           <MaterialIcons name="photo-library" size={24} color="black"/>
           <Text className="text-black font-semibold ml-2">Gallery</Text>

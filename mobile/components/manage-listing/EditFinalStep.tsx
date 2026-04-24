@@ -137,14 +137,14 @@ const EditFinalStep = ({listingData, photos, location, resetForm, confirmedRewar
                 <Text className="text-gray-500 text-center text-sm">Your listing has been saved.</Text>
 
                 <Pressable
-                  className="bg-green-600 w-full py-4 rounded-xl items-center mt-2"
+                  className="bg-green-600 w-full py-4 rounded-xl items-center mt-2 active:opacity-80"
                   onPress={() => { resetForm(); router.back(); }}
                 >
                   <Text className="text-white font-bold text-base">Back to listing</Text>
                 </Pressable>
 
                 <Pressable
-                  className="w-full py-3 items-center"
+                  className="w-full py-3 items-center active:opacity-80"
                   onPress={() => { resetForm(); router.replace('/(tabs)'); }}
                 >
                   <Text className="text-green-600 font-semibold text-base">Go to home screen</Text>

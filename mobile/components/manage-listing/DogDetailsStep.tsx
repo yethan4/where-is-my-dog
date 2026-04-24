@@ -43,6 +43,7 @@ const DogDetailsStep = ({onChange, initialData}: Props) => {
       <View className="bg-white px-4 pt-4 pb-2 mb-4 flex w-full rounded-xl">
         <Pressable
             onPress={() => setBreedActive(!breedActive)}
+            className="active:opacity-80"
           >
           <View className="flex-row items-center relative mb-4">
             <FontAwesome5 name="dog" size={16} color="brown" className="bg-yellow-100 px-2 py-2 rounded-xl" />
@@ -65,6 +66,7 @@ const DogDetailsStep = ({onChange, initialData}: Props) => {
       <View className="bg-white px-4 pt-4 pb-2 mb-4 flex w-full rounded-xl">
         <Pressable
             onPress={() => setSizeActive(!sizeActive)}
+            className="active:opacity-80"
         >
           <View className="flex-row items-center relative mb-4">
             <MaterialCommunityIcons name="ruler" size={16} color="brown" className="bg-yellow-100 px-2 py-2 rounded-xl" />
@@ -87,7 +89,7 @@ const DogDetailsStep = ({onChange, initialData}: Props) => {
               return (
                 <Pressable
                   key={opt.value}
-                  className={`h-32 w-28 items-center justify-center border-2 rounded-xl ${active ? 'border-gray-400' : 'border-gray-200'}`}
+                  className={`h-32 w-28 items-center justify-center border-2 rounded-xl active:opacity-80 ${active ? 'border-gray-400' : 'border-gray-200'}`}
                   onPress={() => setSize(opt.value)}
                 >
                   <Text className="text-3xl mb-1">{opt.emoji}</Text>
@@ -103,6 +105,7 @@ const DogDetailsStep = ({onChange, initialData}: Props) => {
       <View className="bg-white px-4 pt-4 pb-2 mb-4 flex w-full rounded-xl">
         <Pressable
             onPress={() => setColorActive(!colorActive)}
+            className="active:opacity-80"
         >
           <View className="flex-row items-center relative mb-4">
             <Ionicons name="color-palette-sharp" size={16} color="brown" className="bg-yellow-100 px-2 py-2 rounded-xl" />
@@ -124,7 +127,7 @@ const DogDetailsStep = ({onChange, initialData}: Props) => {
                 <Pressable
                   key={opt.value}
                   onPress={() => toggleColor(opt.value)}
-                  className={`flex-row items-center px-3.5 py-2.5 rounded-full border-2 ${
+                  className={`flex-row items-center px-3.5 py-2.5 rounded-full border-2 active:opacity-80 ${
                     active ? 'bg-blue-600 border-blue-600' : 'bg-white border-gray-100'
                   }`}
                 >
@@ -155,7 +158,7 @@ const DogDetailsStep = ({onChange, initialData}: Props) => {
       </View>
 
       <View className="bg-white px-4 pt-4 pb-2 mb-4 flex w-full rounded-xl">
-        <Pressable onPress={() => setGenderActive(!genderActive)}>
+        <Pressable onPress={() => setGenderActive(!genderActive)} className="active:opacity-80">
           <View className="flex-row items-center relative mb-4">
             <Ionicons name="male-female" size={16} color="brown" className="bg-yellow-100 px-2 py-2 rounded-xl" />
             <Text className="ml-2 font-semibold text-gray-800">Gender</Text>
@@ -177,7 +180,7 @@ const DogDetailsStep = ({onChange, initialData}: Props) => {
               return (
                 <Pressable
                   key={opt.value}
-                  className={`h-24 w-28 items-center justify-center border-2 rounded-xl ${active ? 'border-gray-400' : 'border-gray-200'}`}
+                  className={`h-24 w-28 items-center justify-center border-2 rounded-xl active:opacity-80 ${active ? 'border-gray-400' : 'border-gray-200'}`}
                   onPress={() => setGender(opt.value)}
                 >
                   <View className="mb-1">
@@ -192,7 +195,7 @@ const DogDetailsStep = ({onChange, initialData}: Props) => {
       </View>
 
       <View className="bg-white px-4 pt-4 pb-2 mb-4 flex w-full rounded-xl">
-        <Pressable onPress={() => setExtrasActive(!extrasActive)}>
+        <Pressable onPress={() => setExtrasActive(!extrasActive)} className="active:opacity-80">
           <View className="flex-row items-center relative mb-4">
             <Ionicons name="information-circle-outline" size={16} color="brown" className="bg-yellow-100 px-2 py-2 rounded-xl" />
             <Text className="ml-2 font-semibold text-gray-800">Extras</Text>
@@ -220,7 +223,7 @@ const DogDetailsStep = ({onChange, initialData}: Props) => {
                   <Pressable
                     key={opt}
                     onPress={() => setAge(age === opt ? '' : opt)}
-                    className={`px-4 py-2 rounded-full border-2 ${age === opt ? 'bg-blue-600 border-blue-600' : 'bg-white border-gray-100'}`}
+                    className={`px-4 py-2 rounded-full border-2 active:opacity-80 ${age === opt ? 'bg-blue-600 border-blue-600' : 'bg-white border-gray-100'}`}
                   >
                     <Text className={`font-semibold capitalize text-sm ${age === opt ? 'text-white' : 'text-gray-600'}`}>{opt}</Text>
                   </Pressable>

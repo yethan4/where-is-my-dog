@@ -133,7 +133,7 @@ const index = () => {
         <View className="mt-2 mb-4 py-1 px-1 h-14 w-full flex-row rounded-2xl justify-center bg-gray-200">
           <Pressable
             onPress={() => setListingType('lost')}
-            className={`flex-1 justify-center items-center rounded-xl ${listingType === 'lost' ? ' bg-slate-50': 'bg-transparent'}`}
+            className={`flex-1 justify-center items-center rounded-xl active:opacity-80 ${listingType === 'lost' ? ' bg-slate-50': 'bg-transparent'}`}
           >
             <Text className={`font-bold text-2xl ${listingType === 'lost' ? 'text-red-600' : 'text-gray-700'}`}>
               Lost
@@ -141,7 +141,7 @@ const index = () => {
           </Pressable>
           <Pressable
             onPress={() => setListingType('found')}
-            className={`flex-1 justify-center items-center rounded-xl ${listingType === 'found' ? ' bg-slate-50': 'bg-transparent'}`}
+            className={`flex-1 justify-center items-center rounded-xl active:opacity-80 ${listingType === 'found' ? ' bg-slate-50': 'bg-transparent'}`}
           >
             <Text className={`font-bold text-2xl ${listingType === 'found' ? 'text-red-600' : 'text-gray-700'}`}>
               Found
@@ -150,8 +150,8 @@ const index = () => {
         </View>
 
         {/* Search and filter*/}
-        <Pressable 
-          className="flex justify-center mb-2"
+        <Pressable
+          className="flex justify-center mb-2 active:opacity-80"
           onPress={openFilters}
         >
           <View className="relative bg-white px-2 py-2 rounded-2xl">
@@ -202,7 +202,7 @@ const index = () => {
                 <Pressable
                   onPress={() => !isFirst && setPage(currentPage - 1)}
                   disabled={isFirst}
-                  className={`flex-row items-center gap-2 px-5 py-3 rounded-2xl border-2 ${isFirst ? 'border-gray-100 bg-gray-50' : 'border-blue-600 bg-white'}`}
+                  className={`flex-row items-center gap-2 px-5 py-3 rounded-2xl border-2 active:opacity-80 ${isFirst ? 'border-gray-100 bg-gray-50' : 'border-blue-600 bg-white'}`}
                 >
                   <Ionicons name="chevron-back" size={18} color={isFirst ? '#d1d5db' : '#2563EB'} />
                   <Text className={`font-semibold text-base ${isFirst ? 'text-gray-300' : 'text-blue-600'}`}>Prev</Text>
@@ -216,7 +216,7 @@ const index = () => {
                 <Pressable
                   onPress={() => !isLast && setPage(currentPage + 1)}
                   disabled={isLast}
-                  className={`flex-row items-center gap-2 px-5 py-3 rounded-2xl border-2 ${isLast ? 'border-gray-100 bg-gray-50' : 'border-blue-600 bg-blue-600'}`}
+                  className={`flex-row items-center gap-2 px-5 py-3 rounded-2xl border-2 active:opacity-80 ${isLast ? 'border-gray-100 bg-gray-50' : 'border-blue-600 bg-blue-600'}`}
                 >
                   <Text className={`font-semibold text-base ${isLast ? 'text-gray-300' : 'text-white'}`}>Next</Text>
                   <Ionicons name="chevron-forward" size={18} color={isLast ? '#d1d5db' : '#fff'} />
@@ -241,8 +241,8 @@ const index = () => {
 
             <View className="flex-row justify-between mt-4 mb-4 items-center">
               <Text className="text-xl font-semibold tracking-wide mt-2">Filters</Text>
-              <Pressable 
-                className="pl-4 pr-1 py-2"
+              <Pressable
+                className="pl-4 pr-1 py-2 active:opacity-80"
                 onPress={resetFilters}
               >
                 <Text className="text-blue-600 font-semibold">Reset all</Text>
@@ -258,7 +258,7 @@ const index = () => {
                   <Pressable
                       key={opt.value}
                       onPress={() => toggleFilter('size', opt.value)}
-                      className={`flex-1 items-center py-3 rounded-2xl border-2 ${
+                      className={`flex-1 items-center py-3 rounded-2xl border-2 active:opacity-80 ${
                         active ? 'bg-blue-600 border-blue-600' : 'bg-white border-gray-100'
                       }`}
                     >
@@ -282,7 +282,7 @@ const index = () => {
                   <Pressable
                     key={opt.value}
                     onPress={() => toggleFilter('gender', opt.value)}
-                    className={`flex-1 items-center py-3 rounded-2xl border-2 ${
+                    className={`flex-1 items-center py-3 rounded-2xl border-2 active:opacity-80 ${
                       active ? 'bg-blue-600 border-blue-600' : 'bg-white border-gray-100'
                     }`}
                   >
@@ -303,7 +303,7 @@ const index = () => {
                   <Pressable
                     key={opt.value}
                     onPress={() => toggleFilter('color', opt.value)}
-                    className={`flex-row items-center px-3.5 py-2.5 rounded-full border-2 ${
+                    className={`flex-row items-center px-3.5 py-2.5 rounded-full border-2 active:opacity-80 ${
                       active ? 'bg-blue-600 border-blue-600' : 'bg-white border-gray-100'
                     }`}
                   >
@@ -344,7 +344,7 @@ const index = () => {
           </ScrollView>
               <Pressable
                 onPress={applyFilters}
-                className="absolute left-2 right-2 bottom-2 bg-blue-600 rounded-2xl h-14 items-center justify-center mb-1"
+                className="absolute left-2 right-2 bottom-2 bg-blue-600 rounded-2xl h-14 items-center justify-center mb-1 active:opacity-80"
               >
                 <Text className="text-white font-bold text-base tracking-wide">Show results</Text>
             </Pressable>

@@ -23,13 +23,13 @@ const Profile = () => {
         <View className="gap-4 w-full px-8">
           <Pressable
             onPress={() => router.push("/(auth)/login")}
-            className="bg-blue-600 py-4 rounded-lg"
+            className="bg-blue-600 py-4 rounded-lg active:opacity-80"
           >
             <Text className="text-white text-center font-semibold">Login</Text>
           </Pressable>
           <Pressable
             onPress={() => router.push("/(auth)/register")}
-            className="border-2 border-blue-600 py-4 rounded-lg"
+            className="border-2 border-blue-600 py-4 rounded-lg active:opacity-80"
           >
             <Text className="text-blue-600 text-center font-semibold">Register</Text>
           </Pressable>

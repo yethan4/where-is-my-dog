@@ -32,8 +32,8 @@ const BasicInfoStep = ({onChange, initialData, setCanContinue}: Props) => {
 
         <Text className="uppercase tracking-wide text-sm mb-4 font-semibold">What happend?</Text>
         <View className="flex-row w-full px-4 items-center justify-center mb-6">
-          <Pressable 
-            className={`items-center justify-center px-8 py-6 border-2  rounded-lg mr-2 ${listingType==="lost" ? 'border-gray-500' : 'border-gray-200'}`}
+          <Pressable
+            className={`items-center justify-center px-8 py-6 border-2 rounded-lg mr-2 active:opacity-80 ${listingType==="lost" ? 'border-gray-500' : 'border-gray-200'}`}
             onPress={() => setListingType("lost")}
           >
             <FontAwesome6 name="dog" size={32} color="#b05a13" className="mb-2" />
@@ -41,8 +41,8 @@ const BasicInfoStep = ({onChange, initialData, setCanContinue}: Props) => {
             <Text className={`text-xs text-center font-semibold ${listingType==="lost" ? 'text-gray-600' : 'text-gray-400'}`}>My dog went missing</Text>
           </Pressable>
 
-          <Pressable 
-            className={`items-center justify-center px-8 py-6 border-2  rounded-lg mr-2 ${listingType==="found" ? 'border-gray-500' : 'border-gray-200'}`}
+          <Pressable
+            className={`items-center justify-center px-8 py-6 border-2 rounded-lg mr-2 active:opacity-80 ${listingType==="found" ? 'border-gray-500' : 'border-gray-200'}`}
             onPress={() => setListingType("found")}
           >
             <FontAwesome5 name="paw" size={32} color="#631e19" className="mb-2"  />

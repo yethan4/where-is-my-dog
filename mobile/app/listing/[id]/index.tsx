@@ -118,7 +118,7 @@ const Details = () => {
 						)}
 
 					<Pressable
-						className="absolute top-12 left-4 z-10 bg-white/80 p-2 rounded-full shadow-sm"
+						className="absolute top-12 left-4 z-10 bg-white/80 p-2 rounded-full shadow-sm active:opacity-80"
 						onPress={() => router.back()}
 					>
 						<Ionicons name="arrow-back" size={24} color="black" />
@@ -225,6 +225,7 @@ const Details = () => {
 						<View className="flex gap-2">
               <Pressable
                 onPress={() => router.push(`/listing/${id}/map`)}
+                className="active:opacity-80"
               >
                 <View
                   className="flex-row items-center px-4 py-2 rounded-lg bg-gray-50 border border-gray-100 "
@@ -348,7 +349,7 @@ const Details = () => {
 									<Text className="text-xl font-bold text-center text-gray-800">Listing resolved!</Text>
 								)}
 								<Pressable
-									className="bg-slate-800 w-full py-4 rounded-xl items-center mt-2"
+									className="bg-slate-800 w-full py-4 rounded-xl items-center mt-2 active:opacity-80"
 									onPress={() => router.replace('/(tabs)')}
 								>
 									<Text className="text-white font-bold text-base">Go to home screen</Text>
@@ -364,7 +365,7 @@ const Details = () => {
                 )}
 
 								<Pressable
-									className="bg-slate-800 w-full py-4 rounded-xl items-center mt-2"
+									className="bg-slate-800 w-full py-4 rounded-xl items-center mt-2 active:opacity-80"
 									onPress={() => router.replace('/(tabs)')}
 								>
 									<Text className="text-white font-bold text-base">Go to home screen</Text>

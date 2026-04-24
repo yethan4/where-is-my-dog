@@ -49,9 +49,9 @@ const Register = () => {
         </View>
       )}
 
-      <Pressable 
+      <Pressable
         onPress={() => router.back()}
-        className="absolute top-12 left-6"
+        className="absolute top-12 left-6 active:opacity-80"
       >
         <Ionicons name="arrow-back" size={28} color="#374151" />
       </Pressable>
@@ -107,7 +107,7 @@ const Register = () => {
       <Pressable
         onPress={handleRegister}
         disabled={loading}
-        className="bg-blue-600 py-4 rounded-lg mb-4"
+        className="bg-blue-600 py-4 rounded-lg mb-4 active:opacity-80"
       >
         {loading
           ? <ActivityIndicator color="white" />
@@ -115,7 +115,7 @@ const Register = () => {
         }
       </Pressable>
 
-      <Pressable onPress={() => router.push('/(auth)/login')}>
+      <Pressable onPress={() => router.push('/(auth)/login')} className="active:opacity-80">
         <Text className="text-center text-blue-600 font-medium">
           Already have an account? Log in
         </Text>

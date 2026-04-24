@@ -69,7 +69,7 @@ const BreedPicker = (props: BreedPickerProps) => {
           autoCorrect={false}
         />
         {searchText.length > 0 && (
-          <Pressable onPress={handleClear} hitSlop={8}>
+          <Pressable onPress={handleClear} hitSlop={8} className="active:opacity-80">
             <FontAwesome5 name="times" size={14} color="#9ca3af" />
           </Pressable>
         )}
@@ -82,7 +82,7 @@ const BreedPicker = (props: BreedPickerProps) => {
             <Pressable
               key={opt}
               onPress={() => handleSelect(opt)}
-              className={`px-3.5 py-2.5 rounded-full border-2 ${
+              className={`px-3.5 py-2.5 rounded-full border-2 active:opacity-80 ${
                 active ? 'bg-blue-600 border-blue-600' : 'bg-white border-gray-100'
               }`}
             >
