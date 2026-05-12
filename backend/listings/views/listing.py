@@ -6,19 +6,12 @@ from ..permissions import IsOwnerOrReadOnly
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
-from drf_spectacular.utils import (
-    extend_schema,
-    OpenApiParameter,
-    OpenApiResponse,
-    OpenApiExample,
-)
 
 from django.contrib.gis.geos import Point
 from django.contrib.gis.db.models.functions import Distance
 from django.contrib.gis.measure import D
 
 import cloudinary.uploader
-
 
 from ..models import Listing, Location, Photo
 from ..serializers import (
@@ -30,12 +23,21 @@ from ..serializers import (
     SimilarListingSerializer,
     ListingListSerializer
 )
-
+from ..schemas import (
+    listing_viewset_schema,
+    mark_found_schema,
+    nearby_schema,
+    upload_photo_schema,
+    delete_photo_schema,
+    add_location_schema,
+    delete_location_schema,
+    check_similar_schema,
+)
 from ..services import DuplicateDetector
 from listings.filters import ListingFilter
 
 
-@extend_schema(tags=['Listings'])
+@listing_viewset_schema
 class ListingViewSet(viewsets.ModelViewSet):
     """
     ViewSet for managing dog listings (lost and found).
@@ -62,26 +64,7 @@ class ListingViewSet(viewsets.ModelViewSet):
             return ListingListSerializer
         return ListingSerializer
 
-    @extend_schema(
-        summary="Mark listing as found/returned",
-        description=(
-            "Mark a listing as found (for lost dogs) or returned to owner "
-            "(for found dogs). Only the listing owner can perform this action."
-        ),
-        request=None,
-        responses={
-            200: ListingSerializer,
-            403: OpenApiResponse(
-                description="Not the owner of this listing",
-                examples=[
-                    OpenApiExample(
-                        'Forbidden',
-                        value={'detail': 'You do not have permission to perform this action.'} # noqa
-                    )
-                ]
-            )
-        }
-    )
+    @mark_found_schema
     @action(detail=True, methods=['post'])
     def mark_found(self, request, pk=None):
         """
@@ -100,78 +83,7 @@ class ListingViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(listing)
         return Response(serializer.data)
 
-    @extend_schema(
-        summary="Find listings near a location",
-        description=(
-            "Search for lost or found dog listings within a specified radius "
-            "of a geographic location. Results are ordered by distance (closest first)." # noqa
-        ),
-        parameters=[
-            OpenApiParameter(
-                name='latitude',
-                type=float,
-                location=OpenApiParameter.QUERY,
-                required=True,
-                description='Latitude coordinate (e.g., 51.2465 for Lublin)',
-                examples=[
-                    OpenApiExample(
-                        'Lublin',
-                        value=51.2465
-                    )
-                ]
-            ),
-            OpenApiParameter(
-                name='longitude',
-                type=float,
-                location=OpenApiParameter.QUERY,
-                required=True,
-                description='Longitude coordinate (e.g., 22.5684 for Lublin)',
-                examples=[
-                    OpenApiExample(
-                        'Lublin',
-                        value=22.5684
-                    )
-                ]
-            ),
-            OpenApiParameter(
-                name='radius_km',
-                type=float,
-                location=OpenApiParameter.QUERY,
-                required=False,
-                description='Search radius in kilometers (default: 5, max: 10)', # noqa
-                examples=[
-                    OpenApiExample(
-                        'Default',
-                        value=5
-                    )
-                ]
-            ),
-            OpenApiParameter(
-                name='type',
-                type=str,
-                location=OpenApiParameter.QUERY,
-                required=False,
-                description='Filter by listing type',
-                enum=['lost', 'found']
-            ),
-        ],
-        responses={
-            200: ListingSerializer(many=True),
-            400: OpenApiResponse(
-                description="Invalid parameters",
-                examples=[
-                    OpenApiExample(
-                        'Missing coordinates',
-                        value={'error': 'latitude and longitude are required'}
-                    ),
-                    OpenApiExample(
-                        'Invalid format',
-                        value={'error': 'Invalid coordinates or radius'}
-                    )
-                ]
-            )
-        }
-    )
+    @nearby_schema
     @action(detail=False, methods=['get'], url_path='nearby')
     def nearby(self, request):
         """
@@ -183,7 +95,6 @@ class ListingViewSet(viewsets.ModelViewSet):
         - radius_km (optional, default 5)
         - type (optional: 'lost' or 'found')
         """
-
         lat = request.query_params.get('latitude')
         lng = request.query_params.get('longitude')
         radius_km = request.query_params.get('radius_km', 5)
@@ -223,78 +134,7 @@ class ListingViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-    @extend_schema(
-        summary="Upload photo for listing",
-        description=(
-            "Upload a photo to this listing. The photo will be uploaded to Cloudinary " # noqa
-            "and a thumbnail will be automatically generated. Maximum 2 photos per listing." # noqa
-        ),
-        request={
-            'multipart/form-data': {
-                'type': 'object',
-                'properties': {
-                    'photo': {
-                        'type': 'string',
-                        'format': 'binary',
-                        'description': 'Photo file (JPEG, PNG, WebP, max 5MB)'
-                    },
-                    'order_index': {
-                        'type': 'integer',
-                        'default': 0,
-                        'description': 'Order of photo display (0 = primary)'
-                    }
-                },
-                'required': ['photo']
-            }
-        },
-        responses={
-            201: OpenApiResponse(
-                response=PhotoSerializer,
-                description="Photo uploaded successfully",
-                examples=[
-                    OpenApiExample(
-                        'Success',
-                        value={
-                            'id': 1,
-                            'cloudinary_url': 'https://res.cloudinary.com/.../dog.jpg', # noqa
-                            'thumbnail_url': 'https://res.cloudinary.com/.../w_300,h_300/dog.jpg', # noqa
-                            'order_index': 0,
-                            'uploaded_at': '2024-12-20T10:30:00Z'
-                        }
-                    )
-                ]
-            ),
-            400: OpenApiResponse(
-                description="Validation error",
-                examples=[
-                    OpenApiExample(
-                        'Max photos reached',
-                        value={'error': 'A listing can have a maximum of 2 photos.'} # noqa
-                    ),
-                    OpenApiExample(
-                        'File too large',
-                        value={'photo': ['File size too large. Maximum size is 5MB.']} # noqa
-                    ),
-                    OpenApiExample(
-                        'Invalid file type',
-                        value={'photo': ['Invalid file type. Allowed types: JPEG, PNG, WebP.']} # noqa
-                    )
-                ]
-            ),
-            403: OpenApiResponse(
-                description="Not the owner of this listing",
-                examples=[
-                    OpenApiExample(
-                        'Forbidden',
-                        value={'detail': 'You do not have permission to perform this action.'} # noqa
-                    )
-                ]
-            ),
-            404: OpenApiResponse(
-                description="Listing not found"
-            )
-        }
-    )
+    @upload_photo_schema
     @action(detail=True, methods=['post'])
     def upload_photo(self, request, pk=None):
         """
@@ -307,7 +147,6 @@ class ListingViewSet(viewsets.ModelViewSet):
         data['listing'] = listing.id
 
         serializer = PhotoUploadSerializer(data=data)
-
         serializer.is_valid(raise_exception=True)
 
         photo = serializer.save()
@@ -317,57 +156,7 @@ class ListingViewSet(viewsets.ModelViewSet):
             status=status.HTTP_201_CREATED
         )
 
-    @extend_schema(
-        summary="Delete photo from listing",
-        description=(
-            "Delete a specific photo from this listing. "
-            "Only the listing owner can delete photos. "
-            "The photo will also be removed from Cloudinary."
-        ),
-        responses={
-            200: OpenApiResponse(
-                response=PhotoDeleteSerializer,
-                description="Photo deleted successfully",
-                examples=[
-                    OpenApiExample(
-                        'Success',
-                        value={
-                            'id': 5,
-                            'message': 'Photo deleted successfully',
-                            'deleted_at': '2025-12-20T22:30:00Z'
-                        }
-                    )
-                ]
-            ),
-            403: OpenApiResponse(
-                description="Not the owner of this listing",
-                examples=[
-                    OpenApiExample(
-                        'Forbidden',
-                        value={'detail': 'You do not have permission to perform this action.'} # noqa
-                    )
-                ]
-            ),
-            404: OpenApiResponse(
-                description="Photo not found in this listing",
-                examples=[
-                    OpenApiExample(
-                        'Not Found',
-                        value={'error': 'Photo not found in this listing'}
-                    )
-                ]
-            ),
-            500: OpenApiResponse(
-                description="Server error - failed to delete photo from Cloudinary", # noqa
-                examples=[
-                    OpenApiExample(
-                        'Server Error',
-                        value={'error': 'Failed to delete photo: Connection timeout'} # noqa
-                    )
-                ]
-            )
-        }
-    )
+    @delete_photo_schema
     @action(
         detail=True,
         methods=['delete'],
@@ -411,20 +200,7 @@ class ListingViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-    @extend_schema(
-        summary="Add new location to listing",
-        description=(
-            "Add a new location update to an existing listing. "
-            "Any authenticated user can add a location if they spot the dog again." # noqa
-        ),
-        request=LocationSerializer,
-        responses={
-            201: LocationSerializer,
-            400: OpenApiResponse(description="Validation error"),
-            401: OpenApiResponse(description="Authentication required"),
-            404: OpenApiResponse(description="Listing not found")
-        }
-    )
+    @add_location_schema
     @action(
         detail=True,
         methods=['post'],
@@ -434,59 +210,19 @@ class ListingViewSet(viewsets.ModelViewSet):
         listing = self.get_object()
 
         serializer = LocationSerializer(data=request.data)
-
         serializer.is_valid(raise_exception=True)
 
         location = serializer.save(
             added_by_user=request.user,
             listing=listing
-            )
+        )
 
         return Response(
             LocationSerializer(location).data,
             status=status.HTTP_201_CREATED
         )
 
-    @extend_schema(
-        summary="Delete location from listing",
-        description=(
-            "Delete a specific location from this listing. "
-            "Only the listing owner or the user who added the location can delete it." # noqa
-        ),
-        responses={
-            200: OpenApiResponse(
-                description="Location deleted successfully",
-                examples=[
-                    OpenApiExample(
-                        'Success',
-                        value={
-                            'id': 3,
-                            'message': 'Location deleted successfully',
-                            'deleted_at': '2025-12-20T22:30:00Z'
-                        }
-                    )
-                ]
-            ),
-            403: OpenApiResponse(
-                description="Not the owner of this listing or location",
-                examples=[
-                    OpenApiExample(
-                        'Forbidden',
-                        value={'detail': 'You do not have permission to perform this action.'} # noqa
-                    )
-                ]
-            ),
-            404: OpenApiResponse(
-                description="Location not found in this listing",
-                examples=[
-                    OpenApiExample(
-                        'Not Found',
-                        value={'error': 'Location not found in this listing'}
-                    )
-                ]
-            ),
-        }
-    )
+    @delete_location_schema
     @action(
         detail=True,
         methods=['delete'],
@@ -523,20 +259,7 @@ class ListingViewSet(viewsets.ModelViewSet):
             status=status.HTTP_200_OK
         )
 
-    @extend_schema(
-        summary="Check for similar listings",
-        description=(
-            "Search for similar dog listings based on characteristics and location.\n\n" # noqa
-            "**Use cases:**\n"
-            "- search_type='found': Find duplicate 'found' reports (before creating new listing)\n" # noqa
-            "- search_type='lost': Find potential owners (after creating 'found' listing)" # noqa
-        ),
-        request=SimilarListingSerializer,
-        responses={
-            200: ListingSerializer(many=True),
-            400: OpenApiResponse(description="Validation error"),
-        }
-    )
+    @check_similar_schema
     @action(
         detail=False,
         methods=['post'],
@@ -546,7 +269,6 @@ class ListingViewSet(viewsets.ModelViewSet):
         """
         Find similar listings based on characteristics and location.
         """
-
         serializer = SimilarListingSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 

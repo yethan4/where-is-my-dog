@@ -3,8 +3,12 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
     TokenVerifyView,
 )
+from drf_spectacular.utils import extend_schema
 
 from .views.auth import register, login, current_user
+
+TokenRefreshView = extend_schema(tags=['Authentication'])(TokenRefreshView)
+TokenVerifyView = extend_schema(tags=['Authentication'])(TokenVerifyView)
 
 app_name = 'users'
 

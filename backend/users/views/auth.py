@@ -4,50 +4,12 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
-from drf_spectacular.utils import (
-    extend_schema,
-    OpenApiResponse,
-    OpenApiExample
-)
 
 from ..serializers import UserSerializer, RegistrationSerializer
+from ..schemas import register_schema, login_schema, current_user_schema
 
 
-@extend_schema(
-    request=RegistrationSerializer,
-    responses={
-        201: OpenApiResponse(
-            response=UserSerializer,
-            description="User registered successfully",
-            examples=[
-                OpenApiExample(
-                    'Success',
-                    value={
-                        'user': {
-                            'id': 1,
-                            'username': 'john',
-                            'email': 'john@example.com',
-                            'phone': '123456789',
-                            'profile_photo': None,
-                            'email_verified': False,
-                            'is_moderator': False,
-                            'is_banned': False,
-                            'created_at': '2025-12-18T13:00:00Z'
-                        },
-                        'tokens': {
-                            'refresh': 'eyJ0eXAiOiJKV1QiLCJhbG...',
-                            'access': 'eyJ0eXAiOiJKV1QiLCJhbG...'
-                        }
-                    }
-                )
-            ]
-        ),
-        400: OpenApiResponse(description="Validation error")
-    },
-    tags=['Authentication'],
-    summary="Register new user",
-    description="Create a new user account and receive JWT tokens"
-)
+@register_schema
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def register(request):
@@ -73,66 +35,7 @@ def register(request):
     }, status=status.HTTP_201_CREATED)
 
 
-@extend_schema(
-    request={
-        'application/json': {
-            'type': 'object',
-            'properties': {
-                'email': {
-                    'type': 'string',
-                    'example': 'john@example.com',
-                    'format': 'email'
-                },
-                'password': {
-                    'type': 'string',
-                    'example': 'secret123',
-                    'format': 'password'
-                }
-            },
-            'required': ['email', 'password']
-        }
-    },
-    responses={
-        200: OpenApiResponse(
-            response=UserSerializer,
-            description="Login successful",
-            examples=[
-                OpenApiExample(
-                    'Success',
-                    value={
-                        'user': {
-                            'id': 1,
-                            'username': 'john',
-                            'email': 'john@example.com',
-                            'phone': '123456789',
-                            'profile_photo': None,
-                            'email_verified': False,
-                            'is_moderator': False,
-                            'is_banned': False,
-                            'created_at': '2025-12-18T13:00:00Z'
-                        },
-                        'tokens': {
-                            'refresh': 'eyJ0eXAiOiJKV1QiLCJhbG...',
-                            'access': 'eyJ0eXAiOiJKV1QiLCJhbG...'
-                        }
-                    }
-                )
-            ]
-        ),
-        401: OpenApiResponse(
-            description="Invalid credentials",
-            examples=[
-                OpenApiExample(
-                    'Error',
-                    value={'error': 'Invalid credentials'}
-                )
-            ]
-        )
-    },
-    tags=['Authentication'],
-    summary="Login user",
-    description="Authenticate user and receive JWT tokens"
-)
+@login_schema
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def login(request):
@@ -162,16 +65,7 @@ def login(request):
     })
 
 
-@extend_schema(
-    responses={
-        200: UserSerializer,
-        401: OpenApiResponse(
-            description="Authentication credentials were not provided")
-    },
-    tags=['Authentication'],
-    summary="Get current user",
-    description="Retrieve currently authenticated user information"
-)
+@current_user_schema
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def current_user(request):
