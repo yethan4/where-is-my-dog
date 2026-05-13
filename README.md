@@ -24,6 +24,7 @@ The project is focused on **Poland**.
 - Edit and delete own listings
 - Mark listing as resolved
 - Profile screen with user's active and closed listings
+- Settings screens (profile update, password change, account deletion)
 - Loading states, skeleton loaders, pull-to-refresh
 
 **Backend**
@@ -35,6 +36,10 @@ The project is focused on **Poland**.
 - Basic duplicate detection
 - Owner/permission checks on all mutating endpoints
 - Email login with API tests
+- Settings endpoints (profile update, password change, account deletion) with tests
+
+**In progress**
+- In-app chat
 
 ---
 
@@ -56,11 +61,11 @@ The project is focused on **Poland**.
 |-------------|--------------|--------------|
 | ![Home Lost](docs/screenshots/home-lost-view.jpeg) | ![Home Found](docs/screenshots/home-found-view.jpeg) | ![Listing](docs/screenshots/listing-view.jpeg) |
 
-### Profile
+### Profile & Settings
 
-| Profile |
-|---------|
-| ![Profile](docs/screenshots/profile-view.jpeg) |
+| Profile | Settings |
+|---------|----------|
+| ![Profile](docs/screenshots/profile-view.jpeg) | ![Settings](docs/screenshots/settings-view.jpeg) |
 
 ### API Documentation
 
